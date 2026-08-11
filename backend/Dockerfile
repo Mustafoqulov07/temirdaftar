@@ -35,8 +35,10 @@ RUN pnpm install --frozen-lockfile --prod
 
 # Copy built application and prisma
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY prisma ./prisma
+
+# Generate Prisma client for production node_modules
+RUN npx prisma generate
 
 # Expose port
 EXPOSE 3000
