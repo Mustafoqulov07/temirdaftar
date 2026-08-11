@@ -53,7 +53,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         );
       } else {
         await ctx.reply(
-          `Assalomu alaykum! "Qarzdor" — Raqamli Qarz Daftari ilovasining rasmiy botiga xush kelibsiz.\n\nTizimdan foydalanish uchun, iltimos, telefon raqamingizni yuborib roʻyxatdan oʻting yoki hisobingizni bogʻlang:`,
+          `Assalomu alaykum! "Temir Daftar" — Raqamli Qarz Daftari ilovasining rasmiy botiga xush kelibsiz.\n\nTizimdan foydalanish uchun, iltimos, telefon raqamingizni yuborib roʻyxatdan oʻting yoki hisobingizni bogʻlang:`,
           Markup.keyboard([
             [Markup.button.contactRequest('📱 Telefon raqamni yuborish')],
           ]).resize()
@@ -213,7 +213,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   }
 
   private getMainMenuKeyboard() {
-    const webAppUrl = process.env.TELEGRAM_MINI_APP_URL || 'https://qarzdorlar.netlify.app'; // Default yoki env'dagi havola
+    const webAppUrl = process.env.TELEGRAM_MINI_APP_URL || 'https://temirdaftar.pages.dev';
     
     return Markup.keyboard([
       [Markup.button.webApp('🌐 Mini Appni ochish', webAppUrl)],
