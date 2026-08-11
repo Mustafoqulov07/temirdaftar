@@ -1,0 +1,93 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  phoneNumber  String   @unique
+  passwordHash String
+  fullName     String
+  telegramId   String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  store        Store?
+
+  @@map("users")
+}
+
+model Store {
+  id        String     @id @default(uuid())
+  name      String
+  address   String?
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customers Customer[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("stores")
+}
+
+model Customer {
+  id             String    @id @default(uuid())
+  storeId        String
+  store          Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  fullName       String
+  phoneNumber    String?
+  totalDebt      Decimal   @default(0.00) @db.Decimal(15, 2)
+  lastActivityAt DateTime  @default(now())
+  deletedAt      DateTime? // Soft delete uchun
+  debts          Debt[]
+  payments       Payment[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("customers")
+}
+
+model Debt {
+  id          String     @id @default(uuid())
+  customerId  String
+  customer    Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  totalAmount Decimal    @db.Decimal(15, 2)
+  dueDate     DateTime
+  comment     String?
+  isPaid      Boolean    @default(false)
+  deletedAt   DateTime? // Soft delete uchun
+  items       DebtItem[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("debts")
+}
+
+model DebtItem {
+  id           String   @id @default(uuid())
+  debtId       String
+  debt         Debt     @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  productName  String
+  quantity     Decimal  @db.Decimal(10, 2)
+  pricePerUnit Decimal  @db.Decimal(15, 2)
+  totalPrice   Decimal  @db.Decimal(15, 2)
+  createdAt    DateTime @default(now())
+
+  @@map("debt_items")
+}
+
+model Payment {
+  id          String    @id @default(uuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  amount      Decimal   @db.Decimal(15, 2)
+  paymentDate DateTime  @default(now())
+  comment     String?
+  deletedAt   DateTime? // Soft delete uchun
+  createdAt   DateTime  @default(now())
+
+  @@map("payments")
+}

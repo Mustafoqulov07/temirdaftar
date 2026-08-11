@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+backend/dist/
+frontend/dist/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Generated
+backend/generated/
+
+# IDE
+.vscode/
+.idea/
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Agent/AI tool configs
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
