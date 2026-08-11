@@ -36,8 +36,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-8">
             <span className="text-xl font-bold text-indigo-600 tracking-tight flex items-center">
-              <span className="mr-2 px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-sm font-extrabold">Q</span>
-              Qarzdor
+              <span className="mr-2 px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-sm font-extrabold">T</span>
+              Temir Daftar
             </span>
             <nav className="flex space-x-1">
               {navItems.map((item) => (
@@ -73,8 +73,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {/* Mobile Header */}
       <header className="md:hidden bg-white border-b border-gray-100 sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
         <span className="text-lg font-bold text-indigo-600 tracking-tight flex items-center">
-          <span className="mr-1.5 px-2 py-0.5 bg-indigo-600 text-white rounded text-xs font-extrabold">Q</span>
-          Qarzdor
+          <span className="mr-1.5 px-2 py-0.5 bg-indigo-600 text-white rounded text-xs font-extrabold">T</span>
+          Temir Daftar
         </span>
         <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full truncate max-w-[150px]">
           {store?.name}

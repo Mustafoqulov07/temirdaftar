@@ -75,10 +75,10 @@ export const Register: React.FC = () => {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 space-y-6">
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-xl text-2xl font-black mb-2">
-            Q
+            T
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Yangi hisob yaratish</h1>
-          <p className="text-sm text-gray-500">“Qarzdor” MVP tizimida roʻyxatdan oʻting</p>
+          <p className="text-sm text-gray-500">“Temir Daftar” tizimida roʻyxatdan oʻting</p>
         </div>
 
         {error && (
