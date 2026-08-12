@@ -5,12 +5,15 @@ interface User {
   id: string;
   phoneNumber: string;
   fullName: string;
+  telegramId?: string | null;
 }
 
 interface Store {
   id: string;
   name: string;
+  address?: string | null;
 }
+
 
 interface TelegramRegData {
   telegramId: string;

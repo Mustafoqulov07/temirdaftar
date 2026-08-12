@@ -1,8 +1,9 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as bcrypt from 'bcrypt';
 import { createHmac } from 'crypto';
 
@@ -206,6 +207,119 @@ export class AuthService {
       store: {
         id: user.store.id,
         name: user.store.name,
+      },
+    };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { store: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Foydalanuvchi topilmadi');
+    }
+
+    return {
+      user: {
+        id: user.id,
+        phoneNumber: user.phoneNumber,
+        fullName: user.fullName,
+        telegramId: user.telegramId,
+      },
+      store: user.store ? {
+        id: user.store.id,
+        name: user.store.name,
+        address: user.store.address,
+      } : null,
+    };
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { store: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Foydalanuvchi topilmadi');
+    }
+
+    if (dto.phoneNumber) {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { phoneNumber: dto.phoneNumber },
+      });
+      if (existingUser && existingUser.id !== userId) {
+        throw new ConflictException('Bu telefon raqam orqali allaqachon roʻyxatdan oʻtilgan');
+      }
+    }
+
+    let telegramIdToUpdate: string | null | undefined = undefined;
+    if (dto.telegramId !== undefined) {
+      telegramIdToUpdate = dto.telegramId ? dto.telegramId.trim() : null;
+      if (telegramIdToUpdate === '') {
+        telegramIdToUpdate = null;
+      }
+    }
+
+    if (telegramIdToUpdate) {
+      const existingTelegram = await this.prisma.user.findUnique({
+        where: { telegramId: telegramIdToUpdate },
+      });
+      if (existingTelegram && existingTelegram.id !== userId) {
+        throw new ConflictException('Ushbu Telegram hisobi allaqachon boshqa profilga bogʻlangan');
+      }
+    }
+
+    let storeAddressToUpdate: string | null | undefined = undefined;
+    if (dto.storeAddress !== undefined) {
+      storeAddressToUpdate = dto.storeAddress ? dto.storeAddress.trim() : null;
+      if (storeAddressToUpdate === '') {
+        storeAddressToUpdate = null;
+      }
+    }
+
+    let passwordHash: string | undefined;
+    if (dto.password) {
+      passwordHash = await bcrypt.hash(dto.password, 10);
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(dto.fullName && { fullName: dto.fullName }),
+        ...(dto.phoneNumber && { phoneNumber: dto.phoneNumber }),
+        ...(telegramIdToUpdate !== undefined && { telegramId: telegramIdToUpdate }),
+        ...(passwordHash && { passwordHash }),
+        store: {
+          update: {
+            ...(dto.storeName && { name: dto.storeName }),
+            ...(storeAddressToUpdate !== undefined && { address: storeAddressToUpdate }),
+          },
+        },
+      },
+      include: { store: true },
+    });
+
+    const token = this.jwtService.sign({
+      sub: updatedUser.id,
+      storeId: updatedUser.store!.id,
+      phoneNumber: updatedUser.phoneNumber,
+    });
+
+    return {
+      token,
+      user: {
+        id: updatedUser.id,
+        phoneNumber: updatedUser.phoneNumber,
+        fullName: updatedUser.fullName,
+        telegramId: updatedUser.telegramId,
+      },
+      store: {
+        id: updatedUser.store!.id,
+        name: updatedUser.store!.name,
+        address: updatedUser.store!.address,
       },
     };
   }
