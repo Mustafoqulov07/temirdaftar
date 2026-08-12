@@ -61,6 +61,43 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       }
     });
 
+    // /resetpassword komandasi (Parolni tiklash/o'zgartirish)
+    this.bot.command('resetpassword', async (ctx) => {
+      const telegramId = ctx.from.id.toString();
+      const text = ctx.message.text || '';
+      const args = text.split(/\s+/);
+      
+      if (args.length < 2) {
+        return ctx.reply('⚠️ Iltimos, yangi parolni ham yuboring.\n\nMisol uchun:\n`/resetpassword yangi_parol_shu_yerda`', { parse_mode: 'Markdown' });
+      }
+
+      const newPassword = args[1];
+      if (newPassword.length < 6) {
+        return ctx.reply('⚠️ Parol uzunligi kamida 6 ta belgidan iborat boʻlishi kerak.');
+      }
+
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { telegramId },
+        });
+
+        if (!user) {
+          return ctx.reply('Avval ro‘yxatdan o‘ting. Buning uchun /start buyrug‘ini bering.');
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { passwordHash },
+        });
+
+        await ctx.reply('✅ Bajarildi! Yangi parolingiz muvaffaqiyatli saqlandi. Endi brauzer orqali kirganingizda shu yangi parolni ishlatishingiz mumkin.');
+      } catch (error) {
+        console.error('Parolni yangilashda xatolik:', error);
+        await ctx.reply('Xatolik yuz berdi. Iltimos, keyinroq qayta urunib koʻring.');
+      }
+    });
+
     // Kontak yuborilganda
     this.bot.on('contact', async (ctx) => {
       try {
