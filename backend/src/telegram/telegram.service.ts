@@ -92,6 +92,66 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       }
     });
 
+    // /magazine komandasi (Faqat admin uchun maxfiy statistika)
+    this.bot.command('magazine', async (ctx) => {
+      const telegramId = ctx.from.id.toString();
+      const adminId = process.env.ADMIN_TELEGRAM_ID;
+
+      // Agar ADMIN_TELEGRAM_ID env faylda sozlangan bo'lsa va mos kelmasa, javob bermaymiz (maxfiylik uchun)
+      if (adminId && telegramId !== adminId) {
+        return;
+      }
+
+      try {
+        const [
+          usersCount,
+          telegramUsersCount,
+          storesCount,
+          customersCount,
+          debtsCount,
+          paymentsCount,
+          debtsSum,
+          paymentsSum,
+        ] = await Promise.all([
+          this.prisma.user.count(),
+          this.prisma.user.count({ where: { telegramId: { not: null } } }),
+          this.prisma.store.count(),
+          this.prisma.customer.count({ where: { deletedAt: null } }),
+          this.prisma.debt.count({ where: { deletedAt: null } }),
+          this.prisma.payment.count({ where: { deletedAt: null } }),
+          this.prisma.debt.aggregate({
+            where: { deletedAt: null },
+            _sum: { totalAmount: true },
+          }),
+          this.prisma.payment.aggregate({
+            where: { deletedAt: null },
+            _sum: { amount: true },
+          }),
+        ]);
+
+        const formattedDebt = new Intl.NumberFormat('uz-UZ').format(Number(debtsSum._sum.totalAmount || 0));
+        const formattedPayment = new Intl.NumberFormat('uz-UZ').format(Number(paymentsSum._sum.amount || 0));
+
+        let responseText = `📊 *Tizim statistikasi (Admin):*\n\n` +
+          `👥 *Jami foydalanuvchilar:* ${usersCount} ta\n` +
+          `🤖 *Telegram ulovchilar:* ${telegramUsersCount} ta\n` +
+          `🏪 *Jami do'konlar:* ${storesCount} ta\n` +
+          `👥 *Jami mijozlar:* ${customersCount} ta\n\n` +
+          `💰 *Jami qarzlar:* ${formattedDebt} so'm (${debtsCount} ta tranzaksiya)\n` +
+          `💵 *Jami to'lovlar:* ${formattedPayment} so'm (${paymentsCount} ta tranzaksiya)\n\n` +
+          `Your Telegram ID: \`${telegramId}\``;
+
+        if (!adminId) {
+          responseText += `\n\n⚠️ *Eslatma:* Ushbu ma'lumotlarni faqat o'zingiz ko'rishingiz uchun Render panelida \`ADMIN_TELEGRAM_ID\` muhit o'zgaruvchisiga \`${telegramId}\` qiymatini o'rnating.`;
+        }
+
+        await ctx.reply(responseText, { parse_mode: 'Markdown' });
+      } catch (error) {
+        console.error('Admin statistikasini olishda xatolik:', error);
+        await ctx.reply('Xatolik yuz berdi. Iltimos, keyinroq qayta urunib koʻring.');
+      }
+    });
+
     // Kontak yuborilganda
     this.bot.on('contact', async (ctx) => {
       try {
