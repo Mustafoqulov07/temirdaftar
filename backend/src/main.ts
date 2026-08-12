@@ -17,8 +17,10 @@ async function bootstrap() {
   // CORS yoqish (React bilan bog'lanish uchun)
   app.enableCors();
 
-  // Global prefix '/api'
-  app.setGlobalPrefix('api');
+  // Global prefix '/api', root '/' ni exclude qilamiz
+  app.setGlobalPrefix('api', {
+    exclude: ['/'],
+  });
 
   const port = process.env['PORT'] || 3000;
   await app.listen(port);
