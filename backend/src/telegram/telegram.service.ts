@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class TelegramService implements OnModuleInit, OnModuleDestroy {
   private bot: Telegraf;
+  private userStates = new Map<string, string>();
 
   constructor(private prisma: PrismaService) {
     const token = process.env.TELEGRAM_BOT_TOKEN || process.env['TELEGRAM_BOT_TOKEN '];
@@ -70,21 +71,10 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       }
     });
 
-    // /resetpassword komandasi (Parolni tiklash/o'zgartirish)
+    // /resetpassword komandasi (Parolni tiklash/o'zgartirish boshlash)
     this.bot.command('resetpassword', async (ctx) => {
       const telegramId = ctx.from.id.toString();
-      const text = ctx.message.text || '';
-      const args = text.split(/\s+/);
       
-      if (args.length < 2) {
-        return ctx.reply('⚠️ Iltimos, yangi parolni ham yuboring.\n\nMisol uchun:\n`/resetpassword yangi_parol_shu_yerda`', { parse_mode: 'Markdown' });
-      }
-
-      const newPassword = args[1];
-      if (newPassword.length < 6) {
-        return ctx.reply('⚠️ Parol uzunligi kamida 6 ta belgidan iborat boʻlishi kerak.');
-      }
-
       try {
         const user = await this.prisma.user.findUnique({
           where: { telegramId },
@@ -94,15 +84,10 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           return ctx.reply('Avval ro‘yxatdan o‘ting. Buning uchun /start buyrug‘ini bering.');
         }
 
-        const passwordHash = await bcrypt.hash(newPassword, 10);
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { passwordHash },
-        });
-
-        await ctx.reply('✅ Bajarildi! Yangi parolingiz muvaffaqiyatli saqlandi. Endi brauzer orqali kirganingizda shu yangi parolni ishlatishingiz mumkin.');
+        this.userStates.set(telegramId, 'WAITING_FOR_NEW_PASSWORD');
+        await ctx.reply('🔐 Iltimos, yangi parolingizni kiriting (kamida 6 ta belgidan iborat boʻlsin):');
       } catch (error) {
-        console.error('Parolni yangilashda xatolik:', error);
+        console.error('Parol oʻzgartirishni boshlashda xatolik:', error);
         await ctx.reply('Xatolik yuz berdi. Iltimos, keyinroq qayta urunib koʻring.');
       }
     });
@@ -238,6 +223,42 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     // Har qanday boshqa matnli xabarlar uchun
     this.bot.on('text', async (ctx) => {
       const telegramId = ctx.from.id.toString();
+      const text = ctx.message.text ? ctx.message.text.trim() : '';
+
+      // Agar parol kiritish holatida bo'lsa
+      if (this.userStates.get(telegramId) === 'WAITING_FOR_NEW_PASSWORD') {
+        if (text.length < 6) {
+          return ctx.reply('⚠️ Parol uzunligi kamida 6 ta belgidan iborat boʻlishi kerak. Iltimos, qaytadan yozing:');
+        }
+
+        try {
+          const user = await this.prisma.user.findUnique({
+            where: { telegramId },
+          });
+
+          if (!user) {
+            this.userStates.delete(telegramId);
+            return ctx.reply('Foydalanuvchi topilmadi.');
+          }
+
+          const passwordHash = await bcrypt.hash(text, 10);
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: { passwordHash },
+          });
+
+          this.userStates.delete(telegramId);
+          await ctx.reply(
+            '✅ Bajarildi! Yangi parolingiz muvaffaqiyatli saqlandi. Endi brauzer orqali kirganingizda shu yangi parolni ishlatishingiz mumkin.',
+            this.getMainMenuKeyboard()
+          );
+        } catch (error) {
+          console.error('Parolni yangilashda xatolik:', error);
+          await ctx.reply('Xatolik yuz berdi. Iltimos, qaytadan urinib koʻring.');
+        }
+        return;
+      }
+
       const user = await this.prisma.user.findUnique({
         where: { telegramId },
       });
