@@ -3,6 +3,11 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
+  console.log("DEBUG ENV KEYS:", Object.keys(process.env));
+  console.log("DEBUG TELEGRAM_BOT_TOKEN PRESENT:", !!process.env.TELEGRAM_BOT_TOKEN);
+  if (process.env.TELEGRAM_BOT_TOKEN) {
+    console.log("DEBUG TELEGRAM_BOT_TOKEN LENGTH:", process.env.TELEGRAM_BOT_TOKEN.length);
+  }
   const app = await NestFactory.create(AppModule);
 
   // Global validation
