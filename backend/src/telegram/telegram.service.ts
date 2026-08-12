@@ -23,6 +23,15 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       this.bot.launch().catch((err) => {
         console.error('Telegram botni ishga tushirishda xatolik:', err);
       });
+
+      // Bot buyruqlarini ro'yxatdan o'tkazamiz (/ yozganda ko'rinishi uchun)
+      this.bot.telegram.setMyCommands([
+        { command: 'start', description: 'Tizimni ishga tushirish va menyuni koʻrish' },
+        { command: 'resetpassword', description: 'Parolni yangilash. (Foydalanish: /resetpassword yangi_parol)' },
+      ]).catch((err) => {
+        console.error('Telegram buyruqlarini roʻyxatdan oʻtkazishda xatolik:', err);
+      });
+
       console.log('🤖 Telegram bot muvaffaqiyatli ishga tushdi (Polling).');
     }
   }
