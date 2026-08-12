@@ -112,17 +112,28 @@ export class AuthService {
   }
 
   verifyTelegramInitData(initDataString: string): { id: string; fullName: string } | null {
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    if (!botToken) {
+    const rawBotToken = process.env.TELEGRAM_BOT_TOKEN || process.env['TELEGRAM_BOT_TOKEN '];
+    if (!rawBotToken) {
       // Agar token o'rnatilmagan bo'lsa, xatolik beramiz yoki log qilamiz
       console.warn('TELEGRAM_BOT_TOKEN .env faylida sozlanmagan');
       return null;
     }
+    const botToken = rawBotToken.trim();
 
     try {
       const params = new URLSearchParams(initDataString);
       const hash = params.get('hash');
       if (!hash) return null;
+
+      // Replay Attack'dan himoyalanish uchun auth_date tekshiruvi (24 soatlik limit)
+      const authDate = params.get('auth_date');
+      if (!authDate) return null;
+      const authTimestamp = parseInt(authDate, 10);
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      if (currentTimestamp - authTimestamp > 86400) {
+        console.warn('Telegram initData muddati oʻtgan (24 soatdan koʻp vaqt oʻtgan)');
+        return null;
+      }
 
       params.delete('hash');
       const keys = Array.from(params.keys()).sort();
