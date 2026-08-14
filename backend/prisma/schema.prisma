@@ -26,10 +26,25 @@ model Store {
   userId    String     @unique
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   customers Customer[]
+  products  Product[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   @@map("stores")
+}
+
+model Product {
+  id        String     @id @default(uuid())
+  storeId   String
+  store     Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name      String
+  price     Decimal?   @db.Decimal(15, 2)
+  debtItems DebtItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([storeId, name])
+  @@map("products")
 }
 
 model Customer {
@@ -38,9 +53,8 @@ model Customer {
   store          Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   fullName       String
   phoneNumber    String?
-  totalDebt      Decimal   @default(0.00) @db.Decimal(15, 2)
   lastActivityAt DateTime  @default(now())
-  deletedAt      DateTime? // Soft delete uchun
+  deletedAt      DateTime?
   debts          Debt[]
   payments       Payment[]
   createdAt      DateTime  @default(now())
@@ -53,11 +67,10 @@ model Debt {
   id          String     @id @default(uuid())
   customerId  String
   customer    Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  totalAmount Decimal    @db.Decimal(15, 2)
   dueDate     DateTime
   comment     String?
   isPaid      Boolean    @default(false)
-  deletedAt   DateTime? // Soft delete uchun
+  deletedAt   DateTime?
   items       DebtItem[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -69,10 +82,10 @@ model DebtItem {
   id           String   @id @default(uuid())
   debtId       String
   debt         Debt     @relation(fields: [debtId], references: [id], onDelete: Cascade)
-  productName  String
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id])
   quantity     Decimal  @db.Decimal(10, 2)
   pricePerUnit Decimal  @db.Decimal(15, 2)
-  totalPrice   Decimal  @db.Decimal(15, 2)
   createdAt    DateTime @default(now())
 
   @@map("debt_items")
@@ -85,7 +98,7 @@ model Payment {
   amount      Decimal   @db.Decimal(15, 2)
   paymentDate DateTime  @default(now())
   comment     String?
-  deletedAt   DateTime? // Soft delete uchun
+  deletedAt   DateTime?
   createdAt   DateTime  @default(now())
 
   @@map("payments")

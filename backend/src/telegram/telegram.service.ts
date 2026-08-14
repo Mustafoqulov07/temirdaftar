@@ -124,7 +124,6 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           customersCount,
           debtsCount,
           paymentsCount,
-          debtsSum,
           paymentsSum,
         ] = await Promise.all([
           this.prisma.user.count(),
@@ -133,17 +132,21 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           this.prisma.customer.count({ where: { deletedAt: null } }),
           this.prisma.debt.count({ where: { deletedAt: null } }),
           this.prisma.payment.count({ where: { deletedAt: null } }),
-          this.prisma.debt.aggregate({
-            where: { deletedAt: null },
-            _sum: { totalAmount: true },
-          }),
           this.prisma.payment.aggregate({
             where: { deletedAt: null },
             _sum: { amount: true },
           }),
         ]);
 
-        const formattedDebt = new Intl.NumberFormat('uz-UZ').format(Number(debtsSum._sum.totalAmount || 0));
+        const debtItems = await this.prisma.debtItem.findMany({
+          where: { debt: { deletedAt: null } },
+        });
+        const totalDebtsSum = debtItems.reduce(
+          (sum, item) => sum + Number(item.quantity) * Number(item.pricePerUnit),
+          0,
+        );
+
+        const formattedDebt = new Intl.NumberFormat('uz-UZ').format(totalDebtsSum);
         const formattedPayment = new Intl.NumberFormat('uz-UZ').format(Number(paymentsSum._sum.amount || 0));
 
         let responseText = `📊 *Tizim statistikasi (Admin):*\n\n` +
@@ -256,10 +259,24 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
 
       const customers = await this.prisma.customer.findMany({
         where: { storeId: user.store.id, deletedAt: null },
-        select: { totalDebt: true },
+        include: {
+          debts: {
+            where: { deletedAt: null },
+            include: { items: true },
+          },
+          payments: {
+            where: { deletedAt: null },
+          },
+        },
       });
 
-      const totalDebt = customers.reduce((sum, customer) => sum + Number(customer.totalDebt), 0);
+      const totalDebt = customers.reduce((sum, c) => {
+        const totalDebtAmount = c.debts.reduce((sum, d) => {
+          return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+        }, 0);
+        const totalPaymentAmount = c.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+        return sum + (totalDebtAmount - totalPaymentAmount);
+      }, 0);
 
       const formattedDebt = new Intl.NumberFormat('uz-UZ').format(totalDebt);
 

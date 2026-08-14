@@ -16,51 +16,79 @@ export class DebtsService {
       throw new NotFoundException('Mijoz topilmadi');
     }
 
-    // Jami summani hisoblaymiz va tovarlarni saqlash formatiga o'tkazamiz
-    let totalAmount = 0;
-    const debtItemsData = dto.items.map((item) => {
-      const totalPrice = Math.round(item.quantity * item.pricePerUnit * 100) / 100;
-      totalAmount += totalPrice;
-      return {
-        productName: item.productName,
-        quantity: item.quantity,
-        pricePerUnit: item.pricePerUnit,
-        totalPrice,
-      };
-    });
-    totalAmount = Math.round(totalAmount * 100) / 100;
-
-    // Tranzaksiya orqali qarzni yaratamiz va mijozning umumiy balansini oshiramiz
-    const debt = await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Yangi qarz obyektini yaratamiz
       const newDebt = await tx.debt.create({
         data: {
           customerId: dto.customerId,
-          totalAmount,
           dueDate: new Date(dto.dueDate),
           comment: dto.comment || null,
-          items: {
-            create: debtItemsData,
-          },
-        },
-        include: {
-          items: true,
         },
       });
 
-      // Mijoz balansini yangilash
+      // 2. Har bir mahsulot uchun Product qidiramiz/yaratamiz va DebtItem hosil qilamiz
+      const debtItems: any[] = [];
+      for (const item of dto.items) {
+        let product = await tx.product.findFirst({
+          where: {
+            storeId,
+            name: { equals: item.productName, mode: 'insensitive' },
+          },
+        });
+
+        if (!product) {
+          product = await tx.product.create({
+            data: {
+              storeId,
+              name: item.productName,
+              price: item.pricePerUnit,
+            },
+          });
+        }
+
+        const debtItem = await tx.debtItem.create({
+          data: {
+            debtId: newDebt.id,
+            productId: product.id,
+            quantity: item.quantity,
+            pricePerUnit: item.pricePerUnit,
+          },
+          include: {
+            product: true,
+          },
+        });
+
+        debtItems.push(debtItem);
+      }
+
+      // 3. Oxirgi faollik vaqtini yangilaymiz
       await tx.customer.update({
         where: { id: dto.customerId },
         data: {
-          totalDebt: {
-            increment: totalAmount,
-          },
           lastActivityAt: new Date(),
         },
       });
 
-      return newDebt;
-    });
+      // API javobi uchun kutilgan formatda qaytaramiz
+      const totalAmount = debtItems.reduce(
+        (sum, item) => sum + Number(item.quantity) * Number(item.pricePerUnit),
+        0,
+      );
 
-    return debt;
+      return {
+        ...newDebt,
+        totalAmount,
+        items: debtItems.map((item) => ({
+          id: item.id,
+          debtId: item.debtId,
+          productId: item.productId,
+          productName: item.product.name,
+          quantity: Number(item.quantity),
+          pricePerUnit: Number(item.pricePerUnit),
+          totalPrice: Number(item.quantity) * Number(item.pricePerUnit),
+          createdAt: item.createdAt,
+        })),
+      };
+    });
   }
 }

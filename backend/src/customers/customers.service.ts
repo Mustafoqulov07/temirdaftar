@@ -18,7 +18,7 @@ export class CustomersService {
   }
 
   async findAll(storeId: string, search?: string) {
-    return this.prisma.customer.findMany({
+    const customers = await this.prisma.customer.findMany({
       where: {
         storeId,
         deletedAt: null,
@@ -31,9 +31,35 @@ export class CustomersService {
             }
           : {}),
       },
+      include: {
+        debts: {
+          where: { deletedAt: null },
+          include: {
+            items: true,
+          },
+        },
+        payments: {
+          where: { deletedAt: null },
+        },
+      },
       orderBy: {
         fullName: 'asc',
       },
+    });
+
+    return customers.map((c) => {
+      const totalDebtAmount = c.debts.reduce((sum, d) => {
+        return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+      }, 0);
+      const totalPaymentAmount = c.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+      return {
+        id: c.id,
+        fullName: c.fullName,
+        phoneNumber: c.phoneNumber,
+        lastActivityAt: c.lastActivityAt,
+        createdAt: c.createdAt,
+        totalDebt: totalDebtAmount - totalPaymentAmount,
+      };
     });
   }
 
@@ -49,7 +75,13 @@ export class CustomersService {
     // Qarzlar tarixi (soft-deleted bo'lmaganlar)
     const debts = await this.prisma.debt.findMany({
       where: { customerId: id, deletedAt: null },
-      include: { items: true },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -59,23 +91,32 @@ export class CustomersService {
       orderBy: { paymentDate: 'desc' },
     });
 
+    // Jami qarz va to'lov hisobi
+    const totalDebtAmount = debts.reduce((sum, d) => {
+      return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+    }, 0);
+    const totalPaymentAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+
     // Umumiy operatsiyalar logini shakllantiramiz
     const history = [
-      ...debts.map((d) => ({
-        id: d.id,
-        type: 'DEBT',
-        amount: Number(d.totalAmount),
-        date: d.createdAt,
-        comment: d.comment,
-        isPaid: d.isPaid,
-        dueDate: d.dueDate,
-        items: d.items.map((i) => ({
-          productName: i.productName,
-          quantity: Number(i.quantity),
-          pricePerUnit: Number(i.pricePerUnit),
-          totalPrice: Number(i.totalPrice),
-        })),
-      })),
+      ...debts.map((d) => {
+        const dAmount = d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+        return {
+          id: d.id,
+          type: 'DEBT',
+          amount: dAmount,
+          date: d.createdAt,
+          comment: d.comment,
+          isPaid: d.isPaid,
+          dueDate: d.dueDate,
+          items: d.items.map((i) => ({
+            productName: i.product.name,
+            quantity: Number(i.quantity),
+            pricePerUnit: Number(i.pricePerUnit),
+            totalPrice: Number(i.quantity) * Number(i.pricePerUnit),
+          })),
+        };
+      }),
       ...payments.map((p) => ({
         id: p.id,
         type: 'PAYMENT',
@@ -90,7 +131,7 @@ export class CustomersService {
         id: customer.id,
         fullName: customer.fullName,
         phoneNumber: customer.phoneNumber,
-        totalDebt: Number(customer.totalDebt),
+        totalDebt: totalDebtAmount - totalPaymentAmount,
         lastActivityAt: customer.lastActivityAt,
         createdAt: customer.createdAt,
       },

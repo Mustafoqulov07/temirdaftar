@@ -10,20 +10,37 @@ export class PaymentsService {
     // Mijoz ushbu do'konga tegishli ekanligini tekshiramiz (xavfsizlik uchun)
     const customer = await this.prisma.customer.findFirst({
       where: { id: dto.customerId, storeId, deletedAt: null },
+      include: {
+        debts: {
+          where: { deletedAt: null },
+          include: {
+            items: true,
+          },
+        },
+        payments: {
+          where: { deletedAt: null },
+        },
+      },
     });
 
     if (!customer) {
       throw new NotFoundException('Mijoz topilmadi');
     }
 
-    // To'lov summasi mijoz qarzidan oshib ketmasligini tekshiramiz
-    const currentDebt = Number(customer.totalDebt);
+    // Mijozning hozirgi qarzini hisoblaymiz
+    const totalDebtAmount = customer.debts.reduce((sum, d) => {
+      return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+    }, 0);
+    const totalPaymentAmount = customer.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const currentDebt = totalDebtAmount - totalPaymentAmount;
+
     if (dto.amount > currentDebt) {
       throw new BadRequestException(
         `To'lov summasi (${dto.amount}) mijozning jami qarzidan (${currentDebt}) oshib ketdi`,
       );
     }
-    // Tranzaksiya orqali to'lovni yaratamiz va mijozning umumiy balansini kamaytiramiz
+
+    // Tranzaksiya orqali to'lovni yaratamiz va oxirgi faollik vaqtini yangilaymiz
     const payment = await this.prisma.$transaction(async (tx) => {
       const newPayment = await tx.payment.create({
         data: {
@@ -34,13 +51,9 @@ export class PaymentsService {
         },
       });
 
-      // Mijoz balansini kamaytirish (qarzni yopish)
       await tx.customer.update({
         where: { id: dto.customerId },
         data: {
-          totalDebt: {
-            decrement: dto.amount,
-          },
           lastActivityAt: new Date(),
         },
       });

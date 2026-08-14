@@ -30,7 +30,6 @@ export class AppService {
       customersCount,
       debtsCount,
       paymentsCount,
-      debtsSum,
       paymentsSum,
       recentUsers,
     ] = await Promise.all([
@@ -40,10 +39,6 @@ export class AppService {
       this.prisma.customer.count({ where: { deletedAt: null } }),
       this.prisma.debt.count({ where: { deletedAt: null } }),
       this.prisma.payment.count({ where: { deletedAt: null } }),
-      this.prisma.debt.aggregate({
-        where: { deletedAt: null },
-        _sum: { totalAmount: true },
-      }),
       this.prisma.payment.aggregate({
         where: { deletedAt: null },
         _sum: { amount: true },
@@ -61,6 +56,18 @@ export class AppService {
       }),
     ]);
 
+    // Barcha qarz tovarlarini hisoblaymiz (debtsSum o'rniga)
+    const debtItems = await this.prisma.debtItem.findMany({
+      where: {
+        debt: { deletedAt: null },
+      },
+    });
+
+    const totalDebtsAmount = debtItems.reduce(
+      (sum, item) => sum + Number(item.quantity) * Number(item.pricePerUnit),
+      0,
+    );
+
     return {
       summary: {
         totalUsers: usersCount,
@@ -68,11 +75,11 @@ export class AppService {
         totalStores: storesCount,
         totalCustomers: customersCount,
         totalDebtsCount: debtsCount,
-        totalDebtsAmount: debtsSum._sum.totalAmount || 0,
+        totalDebtsAmount,
         totalPaymentsCount: paymentsCount,
         totalPaymentsAmount: paymentsSum._sum.amount || 0,
       },
-      recentUsers: recentUsers.map(u => ({
+      recentUsers: recentUsers.map((u) => ({
         ...u,
         hasTelegram: !!u.telegramId,
       })),

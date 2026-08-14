@@ -17,12 +17,34 @@ export class StoresService {
       where: { storeId, deletedAt: null },
     });
 
-    // 2. Jami qarzdorlik summasi (faol mijozlardan)
-    const totalDebtAgg = await this.prisma.customer.aggregate({
-      _sum: { totalDebt: true },
+    // 2. Jami qarzdorlik summasi (faol mijozlardan) va 6. Top-5 qarzdor mijozlar
+    const activeCustomers = await this.prisma.customer.findMany({
       where: { storeId, deletedAt: null },
+      include: {
+        debts: {
+          where: { deletedAt: null },
+          include: {
+            items: true,
+          },
+        },
+        payments: {
+          where: { deletedAt: null },
+        },
+      },
     });
-    const totalDebtSum = Number(totalDebtAgg._sum.totalDebt || 0);
+
+    let totalDebtSum = 0;
+    const customerDebtsMap = new Map<string, number>();
+
+    for (const c of activeCustomers) {
+      const totalDebtAmount = c.debts.reduce((sum, d) => {
+        return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+      }, 0);
+      const totalPaymentAmount = c.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+      const netDebt = totalDebtAmount - totalPaymentAmount;
+      totalDebtSum += netDebt;
+      customerDebtsMap.set(c.id, netDebt);
+    }
 
     // 3. Bugun tushgan to‘lovlar summasi
     const todayPayments = await this.prisma.payment.aggregate({
@@ -36,41 +58,47 @@ export class StoresService {
     const todayPaymentsSum = Number(todayPayments._sum.amount || 0);
 
     // 4. Muddati o‘tgan umumiy qarzlar summasi
-    const overdueDebts = await this.prisma.debt.aggregate({
-      _sum: { totalAmount: true },
+    const overdueDebtsList = await this.prisma.debt.findMany({
       where: {
         customer: { storeId, deletedAt: null },
         dueDate: { lt: startOfToday },
         isPaid: false,
         deletedAt: null,
       },
+      include: {
+        items: true,
+      },
     });
-    const overdueDebtsSum = Number(overdueDebts._sum.totalAmount || 0);
+    const overdueDebtsSum = overdueDebtsList.reduce((sum, d) => {
+      return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+    }, 0);
 
     // 5. Bugun to‘lanishi kerak bo‘lgan qarzlar summasi
-    const todayDebts = await this.prisma.debt.aggregate({
-      _sum: { totalAmount: true },
+    const todayDebtsList = await this.prisma.debt.findMany({
       where: {
         customer: { storeId, deletedAt: null },
         dueDate: { gte: startOfToday, lte: endOfToday },
         isPaid: false,
         deletedAt: null,
       },
-    });
-    const todayDebtsSum = Number(todayDebts._sum.totalAmount || 0);
-
-    // 6. Eng ko‘p qarzdor mijozlar (Top-5)
-    const topCustomers = await this.prisma.customer.findMany({
-      where: { storeId, deletedAt: null },
-      orderBy: { totalDebt: 'desc' },
-      take: 5,
-      select: {
-        id: true,
-        fullName: true,
-        phoneNumber: true,
-        totalDebt: true,
+      include: {
+        items: true,
       },
     });
+    const todayDebtsSum = todayDebtsList.reduce((sum, d) => {
+      return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+    }, 0);
+
+    // 6. Eng ko‘p qarzdor mijozlar (Top-5)
+    const topCustomers = activeCustomers
+      .map((c) => ({
+        id: c.id,
+        fullName: c.fullName,
+        phoneNumber: c.phoneNumber,
+        totalDebt: customerDebtsMap.get(c.id) || 0,
+      }))
+      .sort((a, b) => b.totalDebt - a.totalDebt)
+      .slice(0, 5);
 
     // 7. Oxirgi 10 ta operatsiyalar logi (Qarz va To'lovlar aralash)
     const lastDebts = await this.prisma.debt.findMany({
@@ -82,6 +110,7 @@ export class StoresService {
       take: 10,
       include: {
         customer: { select: { fullName: true } },
+        items: true,
       },
     });
 
@@ -98,14 +127,17 @@ export class StoresService {
     });
 
     const activities = [
-      ...lastDebts.map((d) => ({
-        id: d.id,
-        type: 'DEBT',
-        amount: Number(d.totalAmount),
-        date: d.createdAt,
-        customerName: d.customer.fullName,
-        comment: d.comment,
-      })),
+      ...lastDebts.map((d) => {
+        const amount = d.items.reduce((sum, i) => sum + Number(i.quantity) * Number(i.pricePerUnit), 0);
+        return {
+          id: d.id,
+          type: 'DEBT',
+          amount,
+          date: d.createdAt,
+          customerName: d.customer.fullName,
+          comment: d.comment,
+        };
+      }),
       ...lastPayments.map((p) => ({
         id: p.id,
         type: 'PAYMENT',
