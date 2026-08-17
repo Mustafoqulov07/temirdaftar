@@ -11,6 +11,7 @@ import {
   ChevronLeftIcon,
   ShoppingBagIcon,
   CreditCardIcon,
+  ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 
 interface CustomerDetailInfo {
@@ -53,6 +54,7 @@ export const CustomerDetail: React.FC = () => {
   const [debtModalOpen, setDebtModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [paymentWarningOpen, setPaymentWarningOpen] = useState(false);
 
   // Forms state
   const [editName, setEditName] = useState('');
@@ -177,15 +179,7 @@ export const CustomerDetail: React.FC = () => {
     }
   };
 
-  const handleAddPaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!paymentAmount) return;
-
-    if (Number(paymentAmount) > 999999999999.99) {
-      showToast("To'lov summasi 999 999 999 999 so'mdan oshmasligi kerak", 'error');
-      return;
-    }
-
+  const executePaymentSubmit = async () => {
     try {
       await api.post('/payments', {
         customerId: id,
@@ -195,12 +189,31 @@ export const CustomerDetail: React.FC = () => {
 
       showToast("To'lov muvaffaqiyatli qabul qilindi", 'success');
       setPaymentModalOpen(false);
+      setPaymentWarningOpen(false);
       setPaymentAmount('');
       setPaymentComment('');
       fetchCustomerDetail(true);
     } catch (err: any) {
       showToast(err.response?.data?.message || 'Toʻlov qabul qilishda xatolik yuz berdi', 'error');
     }
+  };
+
+  const handleAddPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentAmount) return;
+
+    if (Number(paymentAmount) > 999999999999.99) {
+      showToast("To'lov summasi 999 999 999 999 so'mdan oshmasligi kerak", 'error');
+      return;
+    }
+
+    const currentDebt = customer?.totalDebt || 0;
+    if (Number(paymentAmount) > currentDebt) {
+      setPaymentWarningOpen(true);
+      return;
+    }
+
+    executePaymentSubmit();
   };
 
   const confirmDeleteCustomer = async () => {
@@ -613,6 +626,42 @@ export const CustomerDetail: React.FC = () => {
                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
               >
                 Oʻchirish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Exceeds Debt Warning Modal */}
+      {paymentWarningOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-600">
+                <ExclamationCircleIcon className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Ogohlantirish!</h3>
+              <p className="text-sm text-gray-500">
+                Kiritilgan toʻlov summasi ({formatMoney(Number(paymentAmount))}) mijozning joriy qarzidan ({formatMoney(customer?.totalDebt || 0)}) koʻp. 
+              </p>
+              <p className="text-sm text-gray-500 font-semibold">
+                Baribir toʻlov qabul qilinsinmi?
+              </p>
+            </div>
+            <div className="flex space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setPaymentWarningOpen(false)}
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
+              >
+                Yoʻq, bekor qilish
+              </button>
+              <button
+                type="button"
+                onClick={executePaymentSubmit}
+                className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
+              >
+                Ha, qabul qilish
               </button>
             </div>
           </div>

@@ -52,9 +52,10 @@ export const Dashboard: React.FC = () => {
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [debtModalOpen, setDebtModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentWarningOpen, setPaymentWarningOpen] = useState(false);
 
   // Form states
-  const [allCustomersList, setAllCustomersList] = useState<{ id: string; fullName: string }[]>([]);
+  const [allCustomersList, setAllCustomersList] = useState<{ id: string; fullName: string; totalDebt: string }[]>([]);
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerPhone, setNewCustomerPhone] = useState('+998');
 
@@ -167,15 +168,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleAddPaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCustomerId || !paymentAmount) return;
-
-    if (Number(paymentAmount) > 999999999999.99) {
-      showToast("To'lov summasi 999 999 999 999 so'mdan oshmasligi kerak", 'error');
-      return;
-    }
-
+  const executePaymentSubmit = async () => {
     try {
       await api.post('/payments', {
         customerId: selectedCustomerId,
@@ -185,6 +178,7 @@ export const Dashboard: React.FC = () => {
 
       showToast("To'lov muvaffaqiyatli qabul qilindi", 'success');
       setPaymentModalOpen(false);
+      setPaymentWarningOpen(false);
       setSelectedCustomerId('');
       setPaymentAmount('');
       setPaymentComment('');
@@ -192,6 +186,25 @@ export const Dashboard: React.FC = () => {
     } catch (err: any) {
       showToast(err.response?.data?.message || 'Toʻlov qabul qilishda xatolik yuz berdi', 'error');
     }
+  };
+
+  const handleAddPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomerId || !paymentAmount) return;
+
+    if (Number(paymentAmount) > 999999999999.99) {
+      showToast("To'lov summasi 999 999 999 999 so'mdan oshmasligi kerak", 'error');
+      return;
+    }
+
+    const selectedCustomer = allCustomersList.find((c) => c.id === selectedCustomerId);
+    const currentDebt = selectedCustomer ? Number(selectedCustomer.totalDebt) : 0;
+    if (Number(paymentAmount) > currentDebt) {
+      setPaymentWarningOpen(true);
+      return;
+    }
+
+    executePaymentSubmit();
   };
 
   const openDebtModal = () => {
@@ -613,6 +626,42 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Exceeds Debt Warning Modal */}
+      {paymentWarningOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-600">
+                <ExclamationCircleIcon className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Ogohlantirish!</h3>
+              <p className="text-sm text-gray-500">
+                Kiritilgan toʻlov summasi ({formatMoney(Number(paymentAmount))}) mijozning joriy qarzidan ({formatMoney(allCustomersList.find((c) => c.id === selectedCustomerId) ? Number(allCustomersList.find((c) => c.id === selectedCustomerId)!.totalDebt) : 0)}) koʻp. 
+              </p>
+              <p className="text-sm text-gray-500 font-semibold">
+                Baribir toʻlov qabul qilinsinmi?
+              </p>
+            </div>
+            <div className="flex space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setPaymentWarningOpen(false)}
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
+              >
+                Yoʻq, bekor qilish
+              </button>
+              <button
+                type="button"
+                onClick={executePaymentSubmit}
+                className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
+              >
+                Ha, qabul qilish
+              </button>
+            </div>
           </div>
         </div>
       )}
