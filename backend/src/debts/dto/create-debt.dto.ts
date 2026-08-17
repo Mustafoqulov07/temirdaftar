@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, Min, Max, ValidateNested } from 'class-validator';
 
 export class DebtItemDto {
   @IsNotEmpty({ message: 'Mahsulot nomi boʻsh boʻlmasligi kerak' })
@@ -9,11 +9,13 @@ export class DebtItemDto {
   @IsNotEmpty()
   @IsNumber()
   @Min(0.01, { message: 'Miqdor kamida 0.01 boʻlishi kerak' })
+  @Max(999999.99, { message: 'Miqdor 999,999.99 dan oshmasligi kerak' })
   quantity: number;
 
   @IsNotEmpty()
   @IsNumber()
   @Min(0.01, { message: 'Narx 0 dan kam boʻlmasligi kerak' })
+  @Max(999999999999.99, { message: 'Narx 999,999,999,999.99 dan oshmasligi kerak' })
   pricePerUnit: number;
 }
 

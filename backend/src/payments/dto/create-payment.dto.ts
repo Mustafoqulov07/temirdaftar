@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, Min, Max } from 'class-validator';
 
 export class CreatePaymentDto {
   @IsNotEmpty({ message: 'Mijoz identifikatori tanlanishi shart' })
@@ -8,6 +8,7 @@ export class CreatePaymentDto {
   @IsNotEmpty({ message: 'Toʻlov summasi kiritilishi shart' })
   @IsNumber()
   @Min(0.01, { message: 'Toʻlov summasi kamida 0.01 boʻlishi kerak' })
+  @Max(999999999999.99, { message: 'Toʻlov summasi 999,999,999,999.99 dan oshmasligi kerak' })
   amount: number;
 
   @IsOptional()

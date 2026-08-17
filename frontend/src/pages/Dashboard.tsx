@@ -129,6 +129,16 @@ export const Dashboard: React.FC = () => {
     e.preventDefault();
     if (!selectedCustomerId || !debtProduct || !debtPrice || !debtDueDate) return;
 
+    if (Number(debtPrice) > 999999999999.99) {
+      showToast("Narx 999 999 999 999 so'mdan oshmasligi kerak", 'error');
+      return;
+    }
+
+    if (Number(debtQty) > 999999.99) {
+      showToast("Miqdor 999 999 dan oshmasligi kerak", 'error');
+      return;
+    }
+
     try {
       await api.post('/debts', {
         customerId: selectedCustomerId,
@@ -160,6 +170,11 @@ export const Dashboard: React.FC = () => {
   const handleAddPaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomerId || !paymentAmount) return;
+
+    if (Number(paymentAmount) > 999999999999.99) {
+      showToast("To'lov summasi 999 999 999 999 so'mdan oshmasligi kerak", 'error');
+      return;
+    }
 
     try {
       await api.post('/payments', {
