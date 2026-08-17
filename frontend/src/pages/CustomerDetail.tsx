@@ -51,6 +51,7 @@ export const CustomerDetail: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [debtModalOpen, setDebtModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Forms state
   const [editName, setEditName] = useState('');
@@ -182,15 +183,10 @@ export const CustomerDetail: React.FC = () => {
     }
   };
 
-  const handleDeleteCustomer = async () => {
-    const confirmed = window.confirm(
-      'Haqiqatan ham ushbu mijozni va uning barcha qarz/toʻlovlar tarixini oʻchirmoqchisiz? Bu amalni ortga qaytarib boʻlmaydi.'
-    );
-
-    if (!confirmed) return;
-
+  const confirmDeleteCustomer = async () => {
     try {
       await api.delete(`/customers/${id}`);
+      setDeleteModalOpen(false);
       navigate('/customers');
     } catch (err: any) {
       alert(err.response?.data?.message || 'Mijozni oʻchirishda xatolik yuz berdi');
@@ -266,7 +262,7 @@ export const CustomerDetail: React.FC = () => {
             <PencilSquareIcon className="w-5 h-5" />
           </button>
           <button
-            onClick={handleDeleteCustomer}
+            onClick={() => setDeleteModalOpen(true)}
             className="p-2 border border-red-100 text-red-600 rounded-xl hover:bg-red-50 transition-all duration-200"
             title="Mijozni o'chirish"
           >
@@ -565,6 +561,39 @@ export const CustomerDetail: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Customer Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 text-red-600">
+                <TrashIcon className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Mijozni oʻchirish</h3>
+              <p className="text-sm text-gray-500">
+                Haqiqatan ham ushbu mijozni va uning barcha qarz/toʻlovlar tarixini oʻchirmoqchisiz? Bu amalni ortga qaytarib boʻlmaydi.
+              </p>
+            </div>
+            <div className="flex space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteModalOpen(false)}
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
+              >
+                Bekor qilish
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteCustomer}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
+              >
+                Oʻchirish
+              </button>
+            </div>
           </div>
         </div>
       )}
