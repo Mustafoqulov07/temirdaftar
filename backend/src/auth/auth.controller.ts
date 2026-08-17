@@ -44,5 +44,21 @@ export class AuthController {
   ) {
     return this.authService.updateProfile(session.userId, dto);
   }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  forgotPassword(@Body('phoneNumber') phoneNumber: string) {
+    return this.authService.forgotPassword(phoneNumber);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  resetPassword(
+    @Body('phoneNumber') phoneNumber: string,
+    @Body('code') code: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.authService.resetPassword(phoneNumber, code, newPassword);
+  }
 }
 

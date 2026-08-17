@@ -370,6 +370,20 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  async sendMessage(telegramId: string, text: string): Promise<boolean> {
+    if (!this.bot) {
+      console.warn('Telegram bot is not initialized. Cannot send message.');
+      return false;
+    }
+    try {
+      await this.bot.telegram.sendMessage(telegramId, text);
+      return true;
+    } catch (error) {
+      console.error(`Error sending telegram message to ${telegramId}:`, error);
+      return false;
+    }
+  }
+
   private getMainMenuKeyboard() {
     const webAppUrl = process.env.TELEGRAM_MINI_APP_URL || 'https://temirdaftar.pages.dev';
     

@@ -11,10 +11,12 @@ model User {
   phoneNumber  String   @unique
   passwordHash String
   fullName     String
-  telegramId   String?  @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  store        Store?
+  telegramId         String?   @unique
+  resetCode          String?
+  resetCodeExpiresAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  store              Store?
 
   @@map("users")
 }

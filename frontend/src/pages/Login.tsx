@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 
 export const Login: React.FC = () => {
@@ -11,7 +12,16 @@ export const Login: React.FC = () => {
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
   
   const { login } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
+
+  // Reset password states
+  const [resetStep, setResetStep] = useState(1);
+  const [resetPhone, setResetPhone] = useState('+998');
+  const [resetCode, setResetCode] = useState('');
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   // Telefon raqamini faqat +998 va 9 ta raqam formatiga o'tkazish
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +64,78 @@ export const Login: React.FC = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    const digits = val.replace(/\D/g, '');
+    const localDigits = digits.startsWith('998') ? digits.slice(3) : digits;
+    const last9 = localDigits.slice(-9);
+    const result = '+998' + last9;
+    if (result.length <= 13) {
+      setResetPhone(result);
+    }
+  };
+
+  const handleRequestCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    setResetLoading(true);
+
+    if (resetPhone.length !== 13) {
+      setResetError('Telefon raqam notoʻgʻri shaklda (+998XXXXXXXXX)');
+      setResetLoading(false);
+      return;
+    }
+
+    try {
+      await api.post('/auth/forgot-password', {
+        phoneNumber: resetPhone,
+      });
+      showToast("Tasdiqlash kodi Telegram botingizga yuborildi", 'success');
+      setResetStep(2);
+    } catch (err: any) {
+      setResetError(err.response?.data?.message || 'Kodni yuborishda xatolik yuz berdi');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    setResetLoading(true);
+
+    if (resetCode.length !== 6) {
+      setResetError('Tasdiqlash kodi 6 ta raqamdan iborat boʻlishi kerak');
+      setResetLoading(false);
+      return;
+    }
+
+    if (resetNewPassword.length < 6) {
+      setResetError('Yangi parol kamida 6 ta belgidan iborat boʻlishi kerak');
+      setResetLoading(false);
+      return;
+    }
+
+    try {
+      await api.post('/auth/reset-password', {
+        phoneNumber: resetPhone,
+        code: resetCode,
+        newPassword: resetNewPassword,
+      });
+      showToast("Parolingiz muvaffaqiyatli tiklandi!", 'success');
+      setForgotModalOpen(false);
+      // Reset state fields
+      setResetStep(1);
+      setResetPhone('+998');
+      setResetCode('');
+      setResetNewPassword('');
+    } catch (err: any) {
+      setResetError(err.response?.data?.message || 'Parolni tiklashda xatolik yuz berdi');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -149,35 +231,109 @@ export const Login: React.FC = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-bold text-gray-900">Parolni tiklash</h3>
-              <div className="text-sm text-gray-600 space-y-3 text-left">
-                <p>
-                  Xavfsizlik nuqtai nazaridan parolni qayta tiklash faqat <strong>“Temir Daftar” rasmiy Telegram boti</strong> orqali amalga oshiriladi.
-                </p>
-                <p>
-                  Bunining uchun:
-                </p>
-                <ol className="list-decimal pl-5 space-y-1">
-                  <li>Oʻzingiz roʻyxatdan oʻtgan Telegram botimizga kiring.</li>
-                  <li>U yerda <strong><code className="bg-gray-100 px-1 py-0.5 rounded text-indigo-600">/resetpassword</code></strong> buyrugʻini yuboring.</li>
-                  <li>Bot soʻragan yangi parolni yozib yuboring va tasdiqlang.</li>
-                </ol>
-              </div>
+              <p className="text-xs text-gray-500">
+                Tasdiqlash kodi Telegram botingizga yuboriladi
+              </p>
             </div>
-            <div className="pt-2 flex flex-col space-y-2">
-              <a
-                href="https://t.me"
-                target="_blank"
-                rel="noreferrer"
-                className="w-full text-center py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
-              >
-                Telegram botni ochish
-              </a>
+
+            {resetError && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded text-left">
+                <p className="text-xs font-semibold text-red-700 leading-snug">{resetError}</p>
+              </div>
+            )}
+
+            {resetStep === 1 ? (
+              <form onSubmit={handleRequestCode} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Telefon raqamingiz
+                  </label>
+                  <input
+                    type="text"
+                    value={resetPhone}
+                    onChange={handleResetPhoneChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-gray-900"
+                    placeholder="+998901234567"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow-md transition-all duration-200 disabled:opacity-50"
+                >
+                  {resetLoading ? 'Yuborilmoqda...' : 'Kodni yuborish'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetSubmit} className="space-y-4">
+                <div className="bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl text-left">
+                  <p className="text-xs text-emerald-800 leading-snug">
+                    Tasdiqlash kodi Telegram botingizga yuborildi. Iltimos, kodni kiriting.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Tasdiqlash kodi (6 xonali)
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={resetCode}
+                    onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ''))}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-center text-gray-900 tracking-widest text-lg font-bold"
+                    placeholder="••••••"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Yangi parol (kamida 6 ta belgi)
+                  </label>
+                  <input
+                    type="password"
+                    value={resetNewPassword}
+                    onChange={(e) => setResetNewPassword(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-gray-900"
+                    placeholder="••••••"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow-md transition-all duration-200 disabled:opacity-50"
+                >
+                  {resetLoading ? 'Parol yangilanmoqda...' : 'Parolni yangilash'}
+                </button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetStep(1);
+                      setResetError('');
+                    }}
+                    className="text-xs text-indigo-600 hover:underline font-semibold"
+                  >
+                    Kodni qayta yuborish
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="pt-1">
               <button
                 type="button"
-                onClick={() => setForgotModalOpen(false)}
-                className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
+                onClick={() => {
+                  setForgotModalOpen(false);
+                  setResetStep(1);
+                  setResetError('');
+                  setResetCode('');
+                  setResetNewPassword('');
+                }}
+                className="w-full py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
               >
-                Yopish
+                Bekor qilish
               </button>
             </div>
           </div>

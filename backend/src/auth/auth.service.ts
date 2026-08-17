@@ -7,11 +7,14 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as bcrypt from 'bcrypt';
 import { createHmac } from 'crypto';
 
+import { TelegramService } from '../telegram/telegram.service';
+
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private telegramService: TelegramService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -322,5 +325,80 @@ export class AuthService {
         address: updatedUser.store!.address,
       },
     };
+  }
+
+  async forgotPassword(phoneNumber: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { phoneNumber },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Ushbu telefon raqamli foydalanuvchi topilmadi');
+    }
+
+    if (!user.telegramId) {
+      throw new ConflictException(
+        'Sizning profilingiz Telegram botga ulanmagan. Iltimos, parolni tiklash uchun administratorga murojaat qiling.'
+      );
+    }
+
+    // Generate random 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes validity
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetCode: code,
+        resetCodeExpiresAt: expiresAt,
+      },
+    });
+
+    // Send the code via Telegram Bot
+    const text = `🔒 *Temir Daftar* tizimidagi parolingizni tiklash uchun tasdiqlash kodi:\n\n` +
+                 `🔑 *${code}*\n\n` +
+                 `Ushbu kod 15 daqiqa davomida faol boʻladi. Agar siz parolni tiklashni soʻramagan boʻlsangiz, ushbu xabarga eʻtibor bermang.`;
+
+    const sent = await this.telegramService.sendMessage(user.telegramId, text);
+    if (!sent) {
+      throw new ConflictException('Tasdiqlash kodini Telegram bot orqali yuborib boʻlmadi. Keyinroq qayta urinib koʻring.');
+    }
+
+    return { message: 'Tasdiqlash kodi Telegram botingizga yuborildi' };
+  }
+
+  async resetPassword(phoneNumber: string, code: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { phoneNumber },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Foydalanuvchi topilmadi');
+    }
+
+    if (!user.resetCode || user.resetCode !== code) {
+      throw new ConflictException('Tasdiqlash kodi notoʻgʻri');
+    }
+
+    if (user.resetCodeExpiresAt && user.resetCodeExpiresAt < new Date()) {
+      throw new ConflictException('Tasdiqlash kodining muddati tugagan. Iltimos, yangidan soʻrang.');
+    }
+
+    if (newPassword.length < 6) {
+      throw new ConflictException('Parol kamida 6 ta belgidan iborat boʻlishi kerak');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetCode: null,
+        resetCodeExpiresAt: null,
+      },
+    });
+
+    return { message: 'Parolingiz muvaffaqiyatli yangilandi. Yangi parol bilan tizimga kirishingiz mumkin.' };
   }
 }
