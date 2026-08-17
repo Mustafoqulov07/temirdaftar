@@ -255,7 +255,12 @@ export const CustomerDetail: React.FC = () => {
       {/* Customer Profile Card */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-gray-900 leading-tight">{customer.fullName}</h2>
+          <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
+            <h2 className="text-2xl font-black text-gray-900 leading-tight">{customer.fullName}</h2>
+            <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-500 shrink-0" title="Mijoz ID raqami">
+              ID: {customer.id}
+            </span>
+          </div>
           {customer.phoneNumber ? (
             <a href={`tel:${customer.phoneNumber}`} className="inline-flex items-center text-sm font-semibold text-indigo-600 hover:underline">
               <PhoneIcon className="w-4 h-4 mr-1.5" />

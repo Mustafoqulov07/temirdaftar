@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import {
   MagnifyingGlassIcon,
@@ -18,6 +18,7 @@ interface Customer {
 }
 
 export const Customers: React.FC = () => {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -58,14 +59,20 @@ export const Customers: React.FC = () => {
 
     try {
       const phone = newCustomerPhone.length === 13 ? newCustomerPhone : undefined;
-      await api.post('/customers', {
+      const response = await api.post('/customers', {
         fullName: newCustomerName,
         phoneNumber: phone,
       });
+      const newCustomer = response.data;
       setModalOpen(false);
       setNewCustomerName('');
       setNewCustomerPhone('+998');
-      fetchCustomers();
+      
+      if (newCustomer && newCustomer.id) {
+        navigate(`/customers/${newCustomer.id}`);
+      } else {
+        fetchCustomers();
+      }
     } catch (err: any) {
       alert(err.response?.data?.message || 'Mijoz qoʻshishda xatolik yuz berdi');
     }
@@ -147,14 +154,19 @@ export const Customers: React.FC = () => {
                     <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200 truncate">
                       {c.fullName}
                     </h3>
-                    {c.phoneNumber ? (
-                      <span className="text-xs font-semibold text-gray-500 flex items-center">
-                        <PhoneIcon className="w-3.5 h-3.5 mr-1 text-gray-400" />
-                        {c.phoneNumber}
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <span className="text-[10px] font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 shrink-0">
+                        ID: {c.id.slice(0, 8)}
                       </span>
-                    ) : (
-                      <span className="text-xs text-gray-400 italic">Telefon kiritilmagan</span>
-                    )}
+                      {c.phoneNumber ? (
+                        <span className="text-xs font-semibold text-gray-500 flex items-center">
+                          <PhoneIcon className="w-3.5 h-3.5 mr-1 text-gray-400" />
+                          {c.phoneNumber}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Telefon kiritilmagan</span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center space-x-2 shrink-0">
                     <div className="text-right">

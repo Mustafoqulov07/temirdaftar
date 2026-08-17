@@ -22,14 +22,6 @@ export class CustomersService {
       where: {
         storeId,
         deletedAt: null,
-        ...(search
-          ? {
-              OR: [
-                { fullName: { contains: search, mode: 'insensitive' } },
-                { phoneNumber: { contains: search, mode: 'insensitive' } },
-              ],
-            }
-          : {}),
       },
       include: {
         debts: {
@@ -47,7 +39,7 @@ export class CustomersService {
       },
     });
 
-    return customers.map((c) => {
+    const mapped = customers.map((c) => {
       const totalDebtAmount = c.debts.reduce((sum, d) => {
         return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
       }, 0);
@@ -61,6 +53,18 @@ export class CustomersService {
         totalDebt: totalDebtAmount - totalPaymentAmount,
       };
     });
+
+    if (search) {
+      const s = search.toLowerCase().trim();
+      return mapped.filter((c) => {
+        const idMatches = c.id.toLowerCase().includes(s);
+        const nameMatches = c.fullName.toLowerCase().includes(s);
+        const phoneMatches = c.phoneNumber ? c.phoneNumber.toLowerCase().includes(s) : false;
+        return idMatches || nameMatches || phoneMatches;
+      });
+    }
+
+    return mapped;
   }
 
   async findOne(storeId: string, id: string) {
