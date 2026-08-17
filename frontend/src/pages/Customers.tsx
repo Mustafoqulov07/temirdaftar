@@ -11,6 +11,7 @@ import {
 
 interface Customer {
   id: string;
+  serialId: number;
   fullName: string;
   phoneNumber: string | null;
   totalDebt: string;
@@ -41,6 +42,29 @@ export const Customers: React.FC = () => {
       setError('Mijozlarni yuklashda xatolik yuz berdi.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    
+    // If they typed a single digit replacing the whole selection (select all + type)
+    if (/^\d$/.test(val)) {
+      setNewCustomerPhone('+998' + val);
+      return;
+    }
+    
+    if (!val.startsWith('+998')) {
+      if (val.length < 4) {
+        setNewCustomerPhone('+998');
+        return;
+      }
+      val = '+998' + val.replace(/\D/g, '').slice(3);
+    }
+    
+    const digits = val.slice(4).replace(/\D/g, '');
+    if (digits.length <= 9) {
+      setNewCustomerPhone('+998' + digits);
     }
   };
 
@@ -156,7 +180,7 @@ export const Customers: React.FC = () => {
                     </h3>
                     <div className="flex flex-wrap gap-2 items-center">
                       <span className="text-[10px] font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 shrink-0">
-                        ID: {c.id.slice(0, 8)}
+                        ID: {c.serialId}
                       </span>
                       {c.phoneNumber ? (
                         <span className="text-xs font-semibold text-gray-500 flex items-center">
@@ -214,12 +238,11 @@ export const Customers: React.FC = () => {
                 <input
                   type="text"
                   value={newCustomerPhone}
-                  onChange={(e) => {
-                    let val = e.target.value;
-                    if (!val.startsWith('+998')) val = '+998';
-                    const cleaned = '+' + val.slice(1).replace(/\D/g, '');
-                    if (cleaned.length <= 13) setNewCustomerPhone(cleaned);
+                  onFocus={(e) => {
+                    const len = e.target.value.length;
+                    e.target.setSelectionRange(len, len);
                   }}
+                  onChange={handlePhoneChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-900"
                   placeholder="+998901234567"
                 />

@@ -49,6 +49,7 @@ model Product {
 
 model Customer {
   id             String    @id @default(uuid())
+  serialId       Int?
   storeId        String
   store          Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   fullName       String

@@ -14,6 +14,7 @@ import {
 
 interface CustomerDetailInfo {
   id: string;
+  serialId: number;
   fullName: string;
   phoneNumber: string | null;
   totalDebt: number;
@@ -65,6 +66,28 @@ export const CustomerDetail: React.FC = () => {
   const [paymentComment, setPaymentComment] = useState('');
 
   const navigate = useNavigate();
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    
+    if (/^\d$/.test(val)) {
+      setEditPhone('+998' + val);
+      return;
+    }
+    
+    if (!val.startsWith('+998')) {
+      if (val.length < 4) {
+        setEditPhone('+998');
+        return;
+      }
+      val = '+998' + val.replace(/\D/g, '').slice(3);
+    }
+    
+    const digits = val.slice(4).replace(/\D/g, '');
+    if (digits.length <= 9) {
+      setEditPhone('+998' + digits);
+    }
+  };
 
   const fetchCustomerDetail = async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -258,7 +281,7 @@ export const CustomerDetail: React.FC = () => {
           <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
             <h2 className="text-2xl font-black text-gray-900 leading-tight">{customer.fullName}</h2>
             <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-500 shrink-0" title="Mijoz ID raqami">
-              ID: {customer.id}
+              ID: {customer.serialId}
             </span>
           </div>
           {customer.phoneNumber ? (
@@ -386,12 +409,11 @@ export const CustomerDetail: React.FC = () => {
                 <input
                   type="text"
                   value={editPhone}
-                  onChange={(e) => {
-                    let val = e.target.value;
-                    if (!val.startsWith('+998')) val = '+998';
-                    const cleaned = '+' + val.slice(1).replace(/\D/g, '');
-                    if (cleaned.length <= 13) setEditPhone(cleaned);
+                  onFocus={(e) => {
+                    const len = e.target.value.length;
+                    e.target.setSelectionRange(len, len);
                   }}
+                  onChange={handlePhoneChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-900"
                   placeholder="+998901234567"
                 />

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -8,12 +8,35 @@ export class CustomersService {
   constructor(private prisma: PrismaService) {}
 
   async create(storeId: string, dto: CreateCustomerDto) {
-    return this.prisma.customer.create({
-      data: {
-        fullName: dto.fullName,
-        phoneNumber: dto.phoneNumber || null,
-        storeId,
-      },
+    if (dto.phoneNumber) {
+      const existing = await this.prisma.customer.findFirst({
+        where: {
+          storeId,
+          phoneNumber: dto.phoneNumber,
+          deletedAt: null,
+        },
+      });
+      if (existing) {
+        throw new ConflictException('Ushbu telefon raqamli mijoz doʻkonda allaqachon mavjud');
+      }
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const maxCustomer = await tx.customer.findFirst({
+        where: { storeId },
+        orderBy: { serialId: 'desc' },
+        select: { serialId: true },
+      });
+      const nextSerialId = (maxCustomer?.serialId || 0) + 1;
+
+      return tx.customer.create({
+        data: {
+          fullName: dto.fullName,
+          phoneNumber: dto.phoneNumber || null,
+          storeId,
+          serialId: nextSerialId,
+        },
+      });
     });
   }
 
@@ -46,6 +69,7 @@ export class CustomersService {
       const totalPaymentAmount = c.payments.reduce((sum, p) => sum + Number(p.amount), 0);
       return {
         id: c.id,
+        serialId: c.serialId,
         fullName: c.fullName,
         phoneNumber: c.phoneNumber,
         lastActivityAt: c.lastActivityAt,
@@ -57,7 +81,7 @@ export class CustomersService {
     if (search) {
       const s = search.toLowerCase().trim();
       return mapped.filter((c) => {
-        const idMatches = c.id.toLowerCase().includes(s);
+        const idMatches = c.serialId ? c.serialId.toString().includes(s) : false;
         const nameMatches = c.fullName.toLowerCase().includes(s);
         const phoneMatches = c.phoneNumber ? c.phoneNumber.toLowerCase().includes(s) : false;
         return idMatches || nameMatches || phoneMatches;
@@ -133,6 +157,7 @@ export class CustomersService {
     return {
       customer: {
         id: customer.id,
+        serialId: customer.serialId,
         fullName: customer.fullName,
         phoneNumber: customer.phoneNumber,
         totalDebt: totalDebtAmount - totalPaymentAmount,
@@ -150,6 +175,20 @@ export class CustomersService {
 
     if (!customer) {
       throw new NotFoundException('Mijoz topilmadi');
+    }
+
+    if (dto.phoneNumber) {
+      const existing = await this.prisma.customer.findFirst({
+        where: {
+          storeId,
+          phoneNumber: dto.phoneNumber,
+          id: { not: id },
+          deletedAt: null,
+        },
+      });
+      if (existing) {
+        throw new ConflictException('Ushbu telefon raqamli mijoz doʻkonda allaqachon mavjud');
+      }
     }
 
     return this.prisma.customer.update({
