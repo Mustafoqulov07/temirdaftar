@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../context/ToastContext';
 import {
   PhoneIcon,
   PlusIcon,
@@ -67,6 +68,7 @@ export const CustomerDetail: React.FC = () => {
   const [paymentComment, setPaymentComment] = useState('');
 
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
@@ -126,10 +128,11 @@ export const CustomerDetail: React.FC = () => {
         fullName: editName,
         phoneNumber: phone,
       });
+      showToast("Mijoz ma'lumotlari muvaffaqiyatli yangilandi", 'success');
       setEditModalOpen(false);
       fetchCustomerDetail(true);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Tahrirlashda xatolik yuz berdi');
+      showToast(err.response?.data?.message || 'Tahrirlashda xatolik yuz berdi', 'error');
     }
   };
 
@@ -151,6 +154,7 @@ export const CustomerDetail: React.FC = () => {
         comment: debtComment || undefined,
       });
 
+      showToast("Qarz muvaffaqiyatli yozildi", 'success');
       setDebtModalOpen(false);
       setDebtProduct('');
       setDebtQty('1');
@@ -159,7 +163,7 @@ export const CustomerDetail: React.FC = () => {
       setDebtComment('');
       fetchCustomerDetail(true);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Qarz qoʻshishda xatolik yuz berdi');
+      showToast(err.response?.data?.message || 'Qarz qoʻshishda xatolik yuz berdi', 'error');
     }
   };
 
@@ -174,22 +178,24 @@ export const CustomerDetail: React.FC = () => {
         comment: paymentComment || undefined,
       });
 
+      showToast("To'lov muvaffaqiyatli qabul qilindi", 'success');
       setPaymentModalOpen(false);
       setPaymentAmount('');
       setPaymentComment('');
       fetchCustomerDetail(true);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Toʻlov qabul qilishda xatolik yuz berdi');
+      showToast(err.response?.data?.message || 'Toʻlov qabul qilishda xatolik yuz berdi', 'error');
     }
   };
 
   const confirmDeleteCustomer = async () => {
     try {
       await api.delete(`/customers/${id}`);
+      showToast("Mijoz muvaffaqiyatli o'chirildi", 'success');
       setDeleteModalOpen(false);
       navigate('/customers');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Mijozni oʻchirishda xatolik yuz berdi');
+      showToast(err.response?.data?.message || 'Mijozni oʻchirishda xatolik yuz berdi', 'error');
     }
   };
 

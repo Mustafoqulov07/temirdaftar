@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../context/ToastContext';
 import {
   UserPlusIcon,
   PlusIcon,
@@ -39,6 +40,7 @@ interface Activity {
 }
 
 export const Dashboard: React.FC = () => {
+  const { showToast } = useToast();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -113,12 +115,13 @@ export const Dashboard: React.FC = () => {
         fullName: newCustomerName,
         phoneNumber: phone,
       });
+      showToast("Mijoz muvaffaqiyatli qo'shildi", 'success');
       setCustomerModalOpen(false);
       setNewCustomerName('');
       setNewCustomerPhone('+998');
       fetchDashboardData(true);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Mijoz qoʻshishda xatolik yuz berdi');
+      showToast(err.response?.data?.message || 'Mijoz qoʻshishda xatolik yuz berdi', 'error');
     }
   };
 
@@ -140,6 +143,7 @@ export const Dashboard: React.FC = () => {
         comment: debtComment || undefined,
       });
 
+      showToast("Qarz muvaffaqiyatli yozildi", 'success');
       setDebtModalOpen(false);
       setSelectedCustomerId('');
       setDebtProduct('');
@@ -149,7 +153,7 @@ export const Dashboard: React.FC = () => {
       setDebtComment('');
       fetchDashboardData(true);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Qarz qoʻshishda xatolik yuz berdi');
+      showToast(err.response?.data?.message || 'Qarz qoʻshishda xatolik yuz berdi', 'error');
     }
   };
 
@@ -164,13 +168,14 @@ export const Dashboard: React.FC = () => {
         comment: paymentComment || undefined,
       });
 
+      showToast("To'lov muvaffaqiyatli qabul qilindi", 'success');
       setPaymentModalOpen(false);
       setSelectedCustomerId('');
       setPaymentAmount('');
       setPaymentComment('');
       fetchDashboardData(true);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Toʻlov qabul qilishda xatolik yuz berdi');
+      showToast(err.response?.data?.message || 'Toʻlov qabul qilishda xatolik yuz berdi', 'error');
     }
   };
 

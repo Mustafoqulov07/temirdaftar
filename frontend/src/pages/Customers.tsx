@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../context/ToastContext';
 import {
   MagnifyingGlassIcon,
   UserPlusIcon,
@@ -20,6 +21,7 @@ interface Customer {
 
 export const Customers: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -88,6 +90,7 @@ export const Customers: React.FC = () => {
         phoneNumber: phone,
       });
       const newCustomer = response.data;
+      showToast("Mijoz muvaffaqiyatli qo'shildi", 'success');
       setModalOpen(false);
       setNewCustomerName('');
       setNewCustomerPhone('+998');
@@ -98,7 +101,7 @@ export const Customers: React.FC = () => {
         fetchCustomers();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Mijoz qoʻshishda xatolik yuz berdi');
+      showToast(err.response?.data?.message || 'Mijoz qoʻshishda xatolik yuz berdi', 'error');
     }
   };
 
