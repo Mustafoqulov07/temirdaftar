@@ -134,7 +134,7 @@ export const Customers: React.FC = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base shadow-sm transition-all duration-200"
-          placeholder="Mijoz ismi yoki telefon raqami boʻyicha qidirish..."
+          placeholder="Mijoz ismi, telefoni yoki ID raqami boʻyicha qidirish..."
         />
       </div>
 
