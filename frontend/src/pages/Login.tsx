@@ -8,6 +8,7 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotModalOpen, setForgotModalOpen] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -87,7 +88,16 @@ export const Login: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Parol</label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-sm font-semibold text-gray-700">Parol</label>
+              <button
+                type="button"
+                onClick={() => setForgotModalOpen(true)}
+                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+              >
+                Parolni unutdingizmi?
+              </button>
+            </div>
             <input
               type="password"
               value={password}
@@ -116,6 +126,63 @@ export const Login: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {forgotModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-50 text-indigo-600">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Parolni tiklash</h3>
+              <div className="text-sm text-gray-600 space-y-3 text-left">
+                <p>
+                  Xavfsizlik nuqtai nazaridan parolni qayta tiklash faqat <strong>“Temir Daftar” rasmiy Telegram boti</strong> orqali amalga oshiriladi.
+                </p>
+                <p>
+                  Bunining uchun:
+                </p>
+                <ol className="list-decimal pl-5 space-y-1">
+                  <li>Oʻzingiz roʻyxatdan oʻtgan Telegram botimizga kiring.</li>
+                  <li>U yerda <strong><code className="bg-gray-100 px-1 py-0.5 rounded text-indigo-600">/resetpassword</code></strong> buyrugʻini yuboring.</li>
+                  <li>Bot soʻragan yangi parolni yozib yuboring va tasdiqlang.</li>
+                </ol>
+              </div>
+            </div>
+            <div className="pt-2 flex flex-col space-y-2">
+              <a
+                href="https://t.me"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full text-center py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
+              >
+                Telegram botni ochish
+              </a>
+              <button
+                type="button"
+                onClick={() => setForgotModalOpen(false)}
+                className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
