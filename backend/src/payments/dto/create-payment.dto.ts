@@ -8,7 +8,7 @@ export class CreatePaymentDto {
   @IsNotEmpty({ message: 'Toʻlov summasi kiritilishi shart' })
   @IsNumber()
   @Min(0.01, { message: 'Toʻlov summasi kamida 0.01 boʻlishi kerak' })
-  @Max(999999999999.99, { message: 'Toʻlov summasi 999,999,999,999.99 dan oshmasligi kerak' })
+  @Max(999999999999999999999.99, { message: 'Toʻlov summasi juda katta' })
   amount: number;
 
   @IsOptional()

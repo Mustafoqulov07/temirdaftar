@@ -129,13 +129,13 @@ export const Dashboard: React.FC = () => {
     e.preventDefault();
     if (!selectedCustomerId || !debtProduct || !debtPrice || !debtDueDate) return;
 
-    if (Number(debtPrice) > 999999999999.99) {
-      showToast("Narx 999 999 999 999 so'mdan oshmasligi kerak", 'error');
+    if (Number(debtPrice) > 999999999999999999999.99) {
+      showToast("Narx juda katta", 'error');
       return;
     }
 
-    if (Number(debtQty) > 999999.99) {
-      showToast("Miqdor 999 999 dan oshmasligi kerak", 'error');
+    if (Number(debtQty) > 99999999999999.99) {
+      showToast("Miqdor juda katta", 'error');
       return;
     }
 
@@ -172,8 +172,8 @@ export const Dashboard: React.FC = () => {
     if (!selectedCustomerId || !paymentAmount) return;
 
     const amountNum = Number(paymentAmount);
-    if (amountNum > 999999999999.99) {
-      showToast("To'lov summasi 999 999 999 999 so'mdan oshmasligi kerak", 'error');
+    if (amountNum > 999999999999999999999.99) {
+      showToast("To'lov summasi juda katta", 'error');
       return;
     }
 

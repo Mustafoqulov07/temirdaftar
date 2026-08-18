@@ -9,13 +9,13 @@ export class DebtItemDto {
   @IsNotEmpty()
   @IsNumber()
   @Min(0.01, { message: 'Miqdor kamida 0.01 boʻlishi kerak' })
-  @Max(999999.99, { message: 'Miqdor 999,999.99 dan oshmasligi kerak' })
+  @Max(99999999999999.99, { message: 'Miqdor juda katta' })
   quantity: number;
 
   @IsNotEmpty()
   @IsNumber()
   @Min(0.01, { message: 'Narx 0 dan kam boʻlmasligi kerak' })
-  @Max(999999999999.99, { message: 'Narx 999,999,999,999.99 dan oshmasligi kerak' })
+  @Max(999999999999999999999.99, { message: 'Narx juda katta' })
   pricePerUnit: number;
 }
 
