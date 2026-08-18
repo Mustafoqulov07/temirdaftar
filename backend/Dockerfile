@@ -36,4 +36,4 @@ COPY --from=builder /app/prisma.config.js ./prisma.config.js
 EXPOSE 3000
 
 # Start the application
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/main"]
