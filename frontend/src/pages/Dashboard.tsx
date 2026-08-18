@@ -177,6 +177,13 @@ export const Dashboard: React.FC = () => {
       return;
     }
 
+    const selectedCustomer = allCustomersList.find((c) => c.id === selectedCustomerId);
+    const currentDebt = selectedCustomer ? Number(selectedCustomer.totalDebt) : 0;
+    if (amountNum > currentDebt) {
+      showToast("To'lov summasi mijoz qarzidan ko'p bo'lishi mumkin emas", 'error');
+      return;
+    }
+
     try {
       await api.post('/payments', {
         customerId: selectedCustomerId,
@@ -184,14 +191,7 @@ export const Dashboard: React.FC = () => {
         comment: paymentComment || undefined,
       });
 
-      const selectedCustomer = allCustomersList.find((c) => c.id === selectedCustomerId);
-      const currentDebt = selectedCustomer ? Number(selectedCustomer.totalDebt) : 0;
-      if (amountNum > currentDebt) {
-        showToast("To'lov muvaffaqiyatli qabul qilindi. Ogohlantirish: Summa qarzdan ko'p!", 'warning');
-      } else {
-        showToast("To'lov muvaffaqiyatli qabul qilindi", 'success');
-      }
-
+      showToast("To'lov muvaffaqiyatli qabul qilindi", 'success');
       setPaymentModalOpen(false);
       setSelectedCustomerId('');
       setPaymentAmount('');
