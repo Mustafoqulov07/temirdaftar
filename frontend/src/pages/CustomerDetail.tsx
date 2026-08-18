@@ -11,6 +11,7 @@ import {
   ChevronLeftIcon,
   ShoppingBagIcon,
   CreditCardIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 
 interface CustomerDetailInfo {
@@ -53,6 +54,7 @@ export const CustomerDetail: React.FC = () => {
   const [debtModalOpen, setDebtModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // Forms state
   const [editName, setEditName] = useState('');
@@ -221,6 +223,22 @@ export const CustomerDetail: React.FC = () => {
     }
   };
 
+  const handleResetDebtToZero = async () => {
+    try {
+      await api.post('/payments', {
+        customerId: id,
+        amount: Number(customer?.totalDebt || 0),
+        comment: "Qarz nollashtirildi (tizim tomonidan)",
+      });
+
+      showToast("Mijozning qarz balansi nollashtirildi", 'success');
+      setResetConfirmOpen(false);
+      fetchCustomerDetail(true);
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Qarzni nollashtirishda xatolik yuz berdi', 'error');
+    }
+  };
+
   const openDebtModal = () => {
     const defaultDate = new Date();
     defaultDate.setDate(defaultDate.getDate() + 7);
@@ -328,21 +346,31 @@ export const CustomerDetail: React.FC = () => {
       </div>
 
       {/* Action buttons */}
-      <div className="grid grid-cols-2 gap-4">
-        <button
-          onClick={openDebtModal}
-          className="flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl shadow-md hover:shadow-indigo-200 transition-all duration-200 text-base"
-        >
-          <PlusIcon className="w-5 h-5 text-white" />
-          <span>+ Qarz yozish</span>
-        </button>
-        <button
-          onClick={() => setPaymentModalOpen(true)}
-          className="flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-md hover:shadow-emerald-200 transition-all duration-200 text-base"
-        >
-          <MinusIcon className="w-5 h-5 text-white" />
-          <span>+ Toʻlov qabul qilish</span>
-        </button>
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={openDebtModal}
+            className="flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl shadow-md hover:shadow-indigo-200 transition-all duration-200 text-base cursor-pointer"
+          >
+            <PlusIcon className="w-5 h-5 text-white" />
+            <span>+ Qarz yozish</span>
+          </button>
+          <button
+            onClick={() => setPaymentModalOpen(true)}
+            className="flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-md hover:shadow-emerald-200 transition-all duration-200 text-base cursor-pointer"
+          >
+            <MinusIcon className="w-5 h-5 text-white" />
+            <span>+ Toʻlov qabul qilish</span>
+          </button>
+        </div>
+        {Number(customer.totalDebt) > 0 && (
+          <button
+            onClick={() => setResetConfirmOpen(true)}
+            className="w-full flex items-center justify-center space-x-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 text-sm cursor-pointer shadow-sm"
+          >
+            <span>🔄 Qarzni 0 ga tushirish (Nollashtirish)</span>
+          </button>
+        )}
       </div>
 
       {/* History log */}
@@ -620,6 +648,42 @@ export const CustomerDetail: React.FC = () => {
                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
               >
                 Oʻchirish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Debt Confirmation Modal */}
+      {resetConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-600">
+                <ArrowPathIcon className="h-6 w-6 animate-spin-slow" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Qarzni nollashtirish</h3>
+              <p className="text-sm text-gray-500">
+                Haqiqatan ham ushbu mijozning joriy qarzini ({formatMoney(customer.totalDebt)}) nollashtirmoqchisiz? 
+              </p>
+              <p className="text-xs text-gray-400">
+                Bunda jami qarzga teng toʻlov avtomatik qabul qilinadi va mijoz balansi 0 ga tushadi.
+              </p>
+            </div>
+            <div className="flex space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setResetConfirmOpen(false)}
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
+              >
+                Bekor qilish
+              </button>
+              <button
+                type="button"
+                onClick={handleResetDebtToZero}
+                className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
+              >
+                Ha, nollashtirish
               </button>
             </div>
           </div>
