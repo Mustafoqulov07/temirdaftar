@@ -5,6 +5,8 @@ interface User {
   id: string;
   phoneNumber: string;
   fullName: string;
+  role?: string;
+  isBlocked?: boolean;
   telegramId?: string | null;
 }
 

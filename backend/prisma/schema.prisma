@@ -11,6 +11,8 @@ model User {
   phoneNumber  String   @unique
   passwordHash String
   fullName     String
+  role         String   @default("USER")
+  isBlocked    Boolean  @default(false)
   telegramId         String?   @unique
   resetCode          String?
   resetCodeExpiresAt DateTime?

@@ -4,6 +4,7 @@ export class UserSession {
   userId: string;
   storeId: string;
   phoneNumber: string;
+  role: string;
 }
 
 export const GetUser = createParamDecorator(

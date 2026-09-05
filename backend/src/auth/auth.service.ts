@@ -64,6 +64,7 @@ export class AuthService {
       sub: user.id,
       storeId: store.id,
       phoneNumber: user.phoneNumber,
+      role: user.role || 'USER',
     });
 
     return {
@@ -72,6 +73,7 @@ export class AuthService {
         id: user.id,
         phoneNumber: user.phoneNumber,
         fullName: user.fullName,
+        role: user.role || 'USER',
       },
       store: {
         id: store.id,
@@ -90,6 +92,10 @@ export class AuthService {
       throw new UnauthorizedException('Telefon raqam yoki parol notoʻgʻri');
     }
 
+    if (user.isBlocked) {
+      throw new UnauthorizedException('Sizning profilingiz bloklangan. Iltimos, administrator bilan bogʻlaning.');
+    }
+
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Telefon raqam yoki parol notoʻgʻri');
@@ -99,6 +105,7 @@ export class AuthService {
       sub: user.id,
       storeId: user.store.id,
       phoneNumber: user.phoneNumber,
+      role: user.role || 'USER',
     });
 
     return {
@@ -107,6 +114,7 @@ export class AuthService {
         id: user.id,
         phoneNumber: user.phoneNumber,
         fullName: user.fullName,
+        role: user.role || 'USER',
       },
       store: {
         id: user.store.id,
@@ -194,10 +202,15 @@ export class AuthService {
       };
     }
 
+    if (user.isBlocked) {
+      throw new UnauthorizedException('Sizning profilingiz bloklangan. Iltimos, administrator bilan bogʻlaning.');
+    }
+
     const token = this.jwtService.sign({
       sub: user.id,
       storeId: user.store.id,
       phoneNumber: user.phoneNumber,
+      role: user.role || 'USER',
     });
 
     return {
@@ -206,6 +219,7 @@ export class AuthService {
         id: user.id,
         phoneNumber: user.phoneNumber,
         fullName: user.fullName,
+        role: user.role || 'USER',
       },
       store: {
         id: user.store.id,
@@ -230,6 +244,7 @@ export class AuthService {
         phoneNumber: user.phoneNumber,
         fullName: user.fullName,
         telegramId: user.telegramId,
+        role: user.role || 'USER',
       },
       store: user.store ? {
         id: user.store.id,
@@ -316,6 +331,7 @@ export class AuthService {
       sub: updatedUser.id,
       storeId: updatedUser.store!.id,
       phoneNumber: updatedUser.phoneNumber,
+      role: updatedUser.role || 'USER',
     });
 
     return {
@@ -325,6 +341,7 @@ export class AuthService {
         phoneNumber: updatedUser.phoneNumber,
         fullName: updatedUser.fullName,
         telegramId: updatedUser.telegramId,
+        role: updatedUser.role || 'USER',
       },
       store: {
         id: updatedUser.store!.id,

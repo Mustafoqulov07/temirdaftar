@@ -58,6 +58,26 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     } catch (err) {
       console.error('Error assigning serialIds on startup:', err);
     }
+
+    // Ensure Super Admin role is assigned
+    try {
+      const adminPhone = '+998937145515';
+      const adminTelegramId = process.env.ADMIN_TELEGRAM_ID;
+      const conditions: any[] = [{ phoneNumber: adminPhone }];
+      if (adminTelegramId) {
+        conditions.push({ telegramId: adminTelegramId });
+      }
+
+      await this.user.updateMany({
+        where: {
+          OR: conditions,
+          role: { not: 'SUPER_ADMIN' },
+        },
+        data: { role: 'SUPER_ADMIN' },
+      });
+    } catch (err) {
+      console.error('Error assigning super admin role:', err);
+    }
   }
 
   async onModuleDestroy() {

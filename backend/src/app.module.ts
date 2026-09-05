@@ -10,6 +10,7 @@ import { CustomersModule } from './customers/customers.module';
 import { DebtsModule } from './debts/debts.module';
 import { PaymentsModule } from './payments/payments.module';
 import { TelegramModule } from './telegram/telegram.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TelegramModule } from './telegram/telegram.module';
     DebtsModule,
     PaymentsModule,
     TelegramModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

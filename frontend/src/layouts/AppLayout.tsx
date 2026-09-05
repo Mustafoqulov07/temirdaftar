@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { store, logout } = useAuth();
+  const { store, user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -55,7 +55,15 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               ))}
             </nav>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            {user?.role === 'SUPER_ADMIN' && (
+              <Link
+                to="/admin"
+                className="flex items-center space-x-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition"
+              >
+                <span>👑 Super Admin</span>
+              </Link>
+            )}
             <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full">
               🏬 {store?.name}
             </span>
@@ -76,9 +84,19 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           <span className="mr-1.5 px-2 py-0.5 bg-indigo-600 text-white rounded text-xs font-extrabold">T</span>
           Temir Daftar
         </span>
-        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full truncate max-w-[150px]">
-          {store?.name}
-        </span>
+        <div className="flex items-center gap-2">
+          {user?.role === 'SUPER_ADMIN' && (
+            <Link
+              to="/admin"
+              className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500 text-white"
+            >
+              👑 Admin
+            </Link>
+          )}
+          <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full truncate max-w-[130px]">
+            {store?.name}
+          </span>
+        </div>
       </header>
 
       {/* Main Content */}
