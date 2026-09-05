@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import {
   PhoneIcon,
@@ -70,6 +71,7 @@ export const CustomerDetail: React.FC = () => {
   const [paymentComment, setPaymentComment] = useState('');
 
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,6 +128,10 @@ export const CustomerDetail: React.FC = () => {
 
     try {
       const phone = editPhone.length === 13 ? editPhone : null;
+      if (phone && user?.phoneNumber && phone === user.phoneNumber) {
+        showToast("O'zingizning telefon raqamingizni mijoz sifatida saqlay olmaysiz", 'error');
+        return;
+      }
       await api.put(`/customers/${id}`, {
         fullName: editName,
         phoneNumber: phone,

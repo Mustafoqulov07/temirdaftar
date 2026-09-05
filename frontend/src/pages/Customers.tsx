@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import {
   MagnifyingGlassIcon,
@@ -21,6 +22,7 @@ interface Customer {
 
 export const Customers: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState('');
@@ -85,6 +87,10 @@ export const Customers: React.FC = () => {
 
     try {
       const phone = newCustomerPhone.length === 13 ? newCustomerPhone : undefined;
+      if (phone && user?.phoneNumber && phone === user.phoneNumber) {
+        showToast("O'zingizning telefon raqamingizni mijoz sifatida qo'sha olmaysiz", 'error');
+        return;
+      }
       const response = await api.post('/customers', {
         fullName: newCustomerName,
         phoneNumber: phone,

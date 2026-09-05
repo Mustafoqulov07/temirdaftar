@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -9,6 +9,15 @@ export class CustomersService {
 
   async create(storeId: string, dto: CreateCustomerDto) {
     if (dto.phoneNumber) {
+      // Do'kon egasining telefon raqami mijoz sifatida qo'shilishini bloklaymiz
+      const store = await this.prisma.store.findUnique({
+        where: { id: storeId },
+        include: { user: true },
+      });
+      if (store?.user?.phoneNumber && store.user.phoneNumber === dto.phoneNumber) {
+        throw new BadRequestException('Doʻkon egasining telefon raqamini mijoz sifatida qoʻshib boʻlmaydi');
+      }
+
       const existing = await this.prisma.customer.findFirst({
         where: {
           storeId,
@@ -178,6 +187,15 @@ export class CustomersService {
     }
 
     if (dto.phoneNumber) {
+      // Do'kon egasining telefon raqami mijoz sifatida yangilanishini bloklaymiz
+      const store = await this.prisma.store.findUnique({
+        where: { id: storeId },
+        include: { user: true },
+      });
+      if (store?.user?.phoneNumber && store.user.phoneNumber === dto.phoneNumber) {
+        throw new BadRequestException('Doʻkon egasining telefon raqamini mijoz sifatida qoʻshib boʻlmaydi');
+      }
+
       const existing = await this.prisma.customer.findFirst({
         where: {
           storeId,
