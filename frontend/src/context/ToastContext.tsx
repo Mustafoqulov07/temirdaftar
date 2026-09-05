@@ -43,40 +43,56 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Toast Container */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 max-w-sm w-full pointer-events-none">
+      {/* Premium Toast Container - Ekranning yuqori qismida, har doim modallardan ham ustda */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center space-y-2.5 w-[92%] max-w-md pointer-events-none">
         {toasts.map((toast) => {
-          let bgColor = 'bg-blue-50 border-blue-100 text-blue-800';
+          let badgeColor = 'bg-blue-50 text-blue-700 border-blue-200';
+          let iconColor = 'text-blue-600';
           let Icon = InformationCircleIcon;
-          let iconColor = 'text-blue-500';
+          let title = 'Maʻlumot';
 
           if (toast.type === 'success') {
-            bgColor = 'bg-emerald-50 border-emerald-100 text-emerald-800';
+            badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-emerald-500/10';
+            iconColor = 'text-emerald-600';
             Icon = CheckCircleIcon;
-            iconColor = 'text-emerald-500';
+            title = 'Muvaffaqiyatli';
           } else if (toast.type === 'error') {
-            bgColor = 'bg-rose-50 border-rose-100 text-rose-800';
+            badgeColor = 'bg-red-50 text-red-800 border-red-200 shadow-red-500/10';
+            iconColor = 'text-red-600';
             Icon = ExclamationCircleIcon;
-            iconColor = 'text-rose-500';
+            title = 'Xatolik';
           } else if (toast.type === 'warning') {
-            bgColor = 'bg-amber-50 border-amber-100 text-amber-800';
+            badgeColor = 'bg-amber-50 text-amber-800 border-amber-200 shadow-amber-500/10';
+            iconColor = 'text-amber-600';
             Icon = ExclamationCircleIcon;
-            iconColor = 'text-amber-500';
+            title = 'Diqqat';
           }
 
           return (
             <div
               key={toast.id}
-              className={`flex items-start p-4 border rounded-2xl shadow-lg pointer-events-auto transition-all duration-300 transform translate-y-0 animate-slide-in ${bgColor}`}
+              className={`w-full flex items-center justify-between p-3.5 bg-white border rounded-2xl shadow-xl pointer-events-auto transition-all duration-300 transform translate-y-0 animate-slide-in ${badgeColor}`}
               role="alert"
             >
-              <Icon className={`w-5 h-5 mr-3 shrink-0 ${iconColor}`} />
-              <div className="text-sm font-semibold flex-1 leading-tight">{toast.message}</div>
+              <div className="flex items-center space-x-3 min-w-0 pr-2">
+                <div className={`p-1.5 rounded-xl bg-white shadow-sm shrink-0 ${iconColor}`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[11px] font-bold uppercase tracking-wider opacity-60 leading-none mb-0.5">
+                    {title}
+                  </span>
+                  <p className="text-xs sm:text-sm font-bold text-gray-900 leading-snug break-words">
+                    {toast.message}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="ml-3 shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-150"
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+                aria-label="Yopish"
               >
-                <XMarkIcon className="w-5 h-5" />
+                <XMarkIcon className="w-4 h-4" />
               </button>
             </div>
           );

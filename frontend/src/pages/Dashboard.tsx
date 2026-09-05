@@ -59,6 +59,11 @@ export const Dashboard: React.FC = () => {
   const [allCustomersList, setAllCustomersList] = useState<{ id: string; fullName: string; totalDebt: string }[]>([]);
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerPhone, setNewCustomerPhone] = useState('+998');
+  const [customerModalError, setCustomerModalError] = useState('');
+
+  const isOwnerPhone = Boolean(
+    newCustomerPhone.length === 13 && user?.phoneNumber && newCustomerPhone === user.phoneNumber
+  );
 
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [debtProduct, setDebtProduct] = useState('');
@@ -110,11 +115,14 @@ export const Dashboard: React.FC = () => {
   const handleAddCustomerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCustomerName) return;
+    setCustomerModalError('');
 
     try {
       const phone = newCustomerPhone.length === 13 ? newCustomerPhone : undefined;
       if (phone && user?.phoneNumber && phone === user.phoneNumber) {
-        showToast("O'zingizning telefon raqamingizni mijoz sifatida qo'sha olmaysiz", 'error');
+        const msg = "O'zingizning do'kon telefon raqamingizni mijoz sifatida qo'sha olmaysiz";
+        setCustomerModalError(msg);
+        showToast(msg, 'error');
         return;
       }
       await api.post('/customers', {
@@ -125,9 +133,12 @@ export const Dashboard: React.FC = () => {
       setCustomerModalOpen(false);
       setNewCustomerName('');
       setNewCustomerPhone('+998');
+      setCustomerModalError('');
       fetchDashboardData(true);
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Mijoz qoʻshishda xatolik yuz berdi', 'error');
+      const msg = err.response?.data?.message || 'Mijoz qoʻshishda xatolik yuz berdi';
+      setCustomerModalError(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -421,6 +432,14 @@ export const Dashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
             <h3 className="text-lg font-bold text-gray-900">Yangi mijoz qoʻshish</h3>
+
+            {customerModalError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700 flex items-start space-x-2 animate-slide-in">
+                <span className="shrink-0 text-sm">⚠️</span>
+                <span>{customerModalError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleAddCustomerSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Mijozning toʻliq ismi</label>
@@ -444,21 +463,35 @@ export const Dashboard: React.FC = () => {
                     const cleaned = '+' + val.slice(1).replace(/\D/g, '');
                     if (cleaned.length <= 13) setNewCustomerPhone(cleaned);
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  className={`w-full px-3 py-2 border rounded-xl text-sm transition-all ${
+                    isOwnerPhone
+                      ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 text-gray-900'
+                      : 'border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900'
+                  }`}
                   placeholder="+998901234567"
                 />
+                {isOwnerPhone && (
+                  <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-2 text-xs text-red-700 font-semibold animate-slide-in">
+                    <span className="shrink-0">🚫</span>
+                    <span>Bu sizning oʻz doʻkon raqamingiz. Oʻzingizni mijoz qilib qoʻshib boʻlmaydi.</span>
+                  </div>
+                )}
               </div>
               <div className="flex space-x-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setCustomerModalOpen(false)}
+                  onClick={() => {
+                    setCustomerModalOpen(false);
+                    setCustomerModalError('');
+                  }}
                   className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
                 >
                   Bekor qilish
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
+                  disabled={isOwnerPhone}
+                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Qoʻshish
                 </button>

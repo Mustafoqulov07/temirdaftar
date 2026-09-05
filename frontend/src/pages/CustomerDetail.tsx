@@ -57,9 +57,18 @@ export const CustomerDetail: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { showToast } = useToast();
+
   // Forms state
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editModalError, setEditModalError] = useState('');
+
+  const isOwnerPhone = Boolean(
+    editPhone.length === 13 && user?.phoneNumber && editPhone === user.phoneNumber
+  );
 
   const [debtProduct, setDebtProduct] = useState('');
   const [debtQty, setDebtQty] = useState('1');
@@ -69,10 +78,6 @@ export const CustomerDetail: React.FC = () => {
 
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentComment, setPaymentComment] = useState('');
-
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { showToast } = useToast();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
@@ -125,11 +130,14 @@ export const CustomerDetail: React.FC = () => {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editName) return;
+    setEditModalError('');
 
     try {
       const phone = editPhone.length === 13 ? editPhone : null;
       if (phone && user?.phoneNumber && phone === user.phoneNumber) {
-        showToast("O'zingizning telefon raqamingizni mijoz sifatida saqlay olmaysiz", 'error');
+        const msg = "O'zingizning do'kon telefon raqamingizni mijoz sifatida saqlay olmaysiz";
+        setEditModalError(msg);
+        showToast(msg, 'error');
         return;
       }
       await api.put(`/customers/${id}`, {
@@ -138,9 +146,12 @@ export const CustomerDetail: React.FC = () => {
       });
       showToast("Mijoz ma'lumotlari muvaffaqiyatli yangilandi", 'success');
       setEditModalOpen(false);
+      setEditModalError('');
       fetchCustomerDetail(true);
     } catch (err: any) {
-      showToast(err.response?.data?.message || 'Tahrirlashda xatolik yuz berdi', 'error');
+      const msg = err.response?.data?.message || 'Tahrirlashda xatolik yuz berdi';
+      setEditModalError(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -453,6 +464,14 @@ export const CustomerDetail: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
             <h3 className="text-lg font-bold text-gray-900">Mijoz maʻlumotlarini tahrirlash</h3>
+
+            {editModalError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700 flex items-start space-x-2 animate-slide-in">
+                <span className="shrink-0 text-sm">⚠️</span>
+                <span>{editModalError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Mijoz ismi</label>
@@ -474,21 +493,35 @@ export const CustomerDetail: React.FC = () => {
                     e.target.setSelectionRange(len, len);
                   }}
                   onChange={handlePhoneChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-900"
+                  className={`w-full px-3 py-2 border rounded-xl text-sm text-gray-900 transition-all ${
+                    isOwnerPhone
+                      ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                      : 'border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
+                  }`}
                   placeholder="+998901234567"
                 />
+                {isOwnerPhone && (
+                  <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-2 text-xs text-red-700 font-semibold animate-slide-in">
+                    <span className="shrink-0">🚫</span>
+                    <span>Bu sizning oʻz doʻkon raqamingiz. Oʻzingizni mijoz qilib saqlab boʻlmaydi.</span>
+                  </div>
+                )}
               </div>
               <div className="flex space-x-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setEditModalOpen(false)}
+                  onClick={() => {
+                    setEditModalOpen(false);
+                    setEditModalError('');
+                  }}
                   className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
                 >
                   Bekor qilish
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200"
+                  disabled={isOwnerPhone}
+                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Saqlash
                 </button>
