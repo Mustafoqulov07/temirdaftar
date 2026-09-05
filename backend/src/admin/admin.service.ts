@@ -67,6 +67,138 @@ export class AdminService {
       },
     });
 
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const [
+      recentDebtItems,
+      prevDebtItems,
+      recentPaymentsAgg,
+      prevPaymentsAgg,
+      recentStoresCount,
+      prevStoresCount,
+      recentCustomersCount,
+      prevCustomersCount,
+    ] = await Promise.all([
+      this.prisma.debtItem.findMany({
+        where: {
+          debt: {
+            deletedAt: null,
+            createdAt: { gte: thirtyDaysAgo },
+          },
+        },
+        select: { quantity: true, pricePerUnit: true },
+      }),
+      this.prisma.debtItem.findMany({
+        where: {
+          debt: {
+            deletedAt: null,
+            createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo },
+          },
+        },
+        select: { quantity: true, pricePerUnit: true },
+      }),
+      this.prisma.payment.aggregate({
+        where: {
+          deletedAt: null,
+          paymentDate: { gte: thirtyDaysAgo },
+        },
+        _sum: { amount: true },
+      }),
+      this.prisma.payment.aggregate({
+        where: {
+          deletedAt: null,
+          paymentDate: { gte: sixtyDaysAgo, lt: thirtyDaysAgo },
+        },
+        _sum: { amount: true },
+      }),
+      this.prisma.store.count({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+      }),
+      this.prisma.store.count({
+        where: { createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+      }),
+      this.prisma.customer.count({
+        where: { deletedAt: null, createdAt: { gte: thirtyDaysAgo } },
+      }),
+      this.prisma.customer.count({
+        where: { deletedAt: null, createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+      }),
+    ]);
+
+    const recentDebtsSum = recentDebtItems.reduce(
+      (sum, item) => sum + Number(item.quantity) * Number(item.pricePerUnit),
+      0,
+    );
+    const prevDebtsSum = prevDebtItems.reduce(
+      (sum, item) => sum + Number(item.quantity) * Number(item.pricePerUnit),
+      0,
+    );
+
+    const recentPaymentsSum = Number(recentPaymentsAgg._sum.amount || 0);
+    const prevPaymentsSum = Number(prevPaymentsAgg._sum.amount || 0);
+
+    const calcTrend = (curr: number, prev: number) => {
+      if (prev === 0) {
+        if (curr === 0) return { percent: 0, direction: 'neutral' as const };
+        return { percent: 100, direction: 'up' as const };
+      }
+      const diff = ((curr - prev) / prev) * 100;
+      const rounded = Math.round(Math.abs(diff) * 10) / 10;
+      return {
+        percent: rounded,
+        direction: diff > 0 ? ('up' as const) : diff < 0 ? ('down' as const) : ('neutral' as const),
+      };
+    };
+
+    // 7-day timeline for visual trends
+    const timeline: Array<{
+      date: string;
+      label: string;
+      debts: number;
+      payments: number;
+    }> = [];
+
+    const weekDays = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+      const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
+      const dayDebtItems = await this.prisma.debtItem.findMany({
+        where: {
+          debt: {
+            deletedAt: null,
+            createdAt: { gte: startOfDay, lte: endOfDay },
+          },
+        },
+        select: { quantity: true, pricePerUnit: true },
+      });
+
+      const dayPayments = await this.prisma.payment.aggregate({
+        where: {
+          deletedAt: null,
+          paymentDate: { gte: startOfDay, lte: endOfDay },
+        },
+        _sum: { amount: true },
+      });
+
+      const debtsSum = dayDebtItems.reduce(
+        (sum, item) => sum + Number(item.quantity) * Number(item.pricePerUnit),
+        0,
+      );
+      const paymentsSumTotal = Number(dayPayments._sum.amount || 0);
+
+      timeline.push({
+        date: startOfDay.toISOString().split('T')[0],
+        label: `${weekDays[startOfDay.getDay()]} (${startOfDay.getDate()})`,
+        debts: debtsSum,
+        payments: paymentsSumTotal,
+      });
+    }
+
     return {
       totalUsers,
       activeUsers,
@@ -79,6 +211,13 @@ export class AdminService {
       totalDebtsSum,
       totalPaymentsSum,
       totalBalance: totalDebtsSum - totalPaymentsSum,
+      trends: {
+        debts: calcTrend(recentDebtsSum, prevDebtsSum),
+        payments: calcTrend(recentPaymentsSum, prevPaymentsSum),
+        stores: calcTrend(recentStoresCount, prevStoresCount),
+        customers: calcTrend(recentCustomersCount, prevCustomersCount),
+      },
+      timeline,
       recentStores: recentStores.map((s) => ({
         id: s.id,
         name: s.name,

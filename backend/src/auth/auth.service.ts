@@ -88,7 +88,7 @@ export class AuthService {
       include: { store: true },
     });
 
-    if (!user || !user.store) {
+    if (!user || (!user.store && user.role !== 'SUPER_ADMIN')) {
       throw new UnauthorizedException('Telefon raqam yoki parol notoʻgʻri');
     }
 
@@ -103,7 +103,7 @@ export class AuthService {
 
     const token = this.jwtService.sign({
       sub: user.id,
-      storeId: user.store.id,
+      storeId: user.store ? user.store.id : null,
       phoneNumber: user.phoneNumber,
       role: user.role || 'USER',
     });
@@ -116,10 +116,12 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role || 'USER',
       },
-      store: {
-        id: user.store.id,
-        name: user.store.name,
-      },
+      store: user.store
+        ? {
+            id: user.store.id,
+            name: user.store.name,
+          }
+        : null,
     };
   }
 
@@ -194,7 +196,7 @@ export class AuthService {
       include: { store: true },
     });
 
-    if (!user || !user.store) {
+    if (!user || (!user.store && user.role !== 'SUPER_ADMIN')) {
       return {
         isNew: true,
         telegramId: telegramUser.id,
@@ -208,7 +210,7 @@ export class AuthService {
 
     const token = this.jwtService.sign({
       sub: user.id,
-      storeId: user.store.id,
+      storeId: user.store ? user.store.id : null,
       phoneNumber: user.phoneNumber,
       role: user.role || 'USER',
     });
@@ -221,10 +223,12 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role || 'USER',
       },
-      store: {
-        id: user.store.id,
-        name: user.store.name,
-      },
+      store: user.store
+        ? {
+            id: user.store.id,
+            name: user.store.name,
+          }
+        : null,
     };
   }
 
@@ -329,7 +333,7 @@ export class AuthService {
 
     const token = this.jwtService.sign({
       sub: updatedUser.id,
-      storeId: updatedUser.store!.id,
+      storeId: updatedUser.store ? updatedUser.store.id : null,
       phoneNumber: updatedUser.phoneNumber,
       role: updatedUser.role || 'USER',
     });
@@ -343,11 +347,13 @@ export class AuthService {
         telegramId: updatedUser.telegramId,
         role: updatedUser.role || 'USER',
       },
-      store: {
-        id: updatedUser.store!.id,
-        name: updatedUser.store!.name,
-        address: updatedUser.store!.address,
-      },
+      store: updatedUser.store
+        ? {
+            id: updatedUser.store.id,
+            name: updatedUser.store.name,
+            address: updatedUser.store.address,
+          }
+        : null,
     };
   }
 

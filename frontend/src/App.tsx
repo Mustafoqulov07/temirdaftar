@@ -16,7 +16,7 @@ import { AdminBroadcast } from './pages/admin/AdminBroadcast';
 import { ToastProvider } from './context/ToastContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
@@ -29,6 +29,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role === 'SUPER_ADMIN') {
+    return <Navigate to="/admin" replace />;
   }
 
   return <>{children}</>;

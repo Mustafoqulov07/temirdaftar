@@ -13,12 +13,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    if (!payload.sub || !payload.storeId) {
+    if (!payload.sub || (!payload.storeId && payload.role !== 'SUPER_ADMIN')) {
       throw new UnauthorizedException('Yaroqsiz token');
     }
     return {
       userId: payload.sub,
-      storeId: payload.storeId,
+      storeId: payload.storeId || '',
       phoneNumber: payload.phoneNumber,
       role: payload.role || 'USER',
     };

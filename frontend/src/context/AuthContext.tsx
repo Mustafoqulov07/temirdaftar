@@ -28,7 +28,7 @@ interface AuthContextType {
   store: Store | null;
   token: string | null;
   telegramRegData: TelegramRegData | null;
-  login: (token: string, user: User, store: Store) => void;
+  login: (token: string, user: User, store: Store | null) => void;
   logout: () => void;
   loading: boolean;
 }
@@ -49,10 +49,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedUser = localStorage.getItem('user');
         const storedStore = localStorage.getItem('store');
 
-        if (storedToken && storedUser && storedStore) {
+        if (storedToken && storedUser) {
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
-          setStore(JSON.parse(storedStore));
+          setStore(storedStore ? JSON.parse(storedStore) : null);
         }
       } catch (e) {
         console.error('localStorage dan maʼlumotlarni yuklashda xatolik:', e);
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(false);
           } else {
             const { token: newToken, user: newUser, store: newStore } = res.data;
-            login(newToken, newUser, newStore);
+            login(newToken, newUser, newStore || null);
             setLoading(false);
           }
         })
@@ -92,10 +92,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (newToken: string, newUser: User, newStore: Store) => {
+  const login = (newToken: string, newUser: User, newStore: Store | null) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
-    localStorage.setItem('store', JSON.stringify(newStore));
+    if (newStore) {
+      localStorage.setItem('store', JSON.stringify(newStore));
+    } else {
+      localStorage.removeItem('store');
+    }
 
     setToken(newToken);
     setUser(newUser);

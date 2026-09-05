@@ -56,7 +56,11 @@ export const Login: React.FC = () => {
       });
       const { token, user, store } = response.data;
       login(token, user, store);
-      navigate('/');
+      if (user.role === 'SUPER_ADMIN') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (err: any) {
       setError(
         err.response?.data?.message || 
