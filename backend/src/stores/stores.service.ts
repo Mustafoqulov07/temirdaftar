@@ -41,7 +41,7 @@ export class StoresService {
         return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
       }, 0);
       const totalPaymentAmount = c.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-      const netDebt = totalDebtAmount - totalPaymentAmount;
+      const netDebt = Math.max(0, totalDebtAmount - totalPaymentAmount);
       totalDebtSum += netDebt;
       customerDebtsMap.set(c.id, netDebt);
     }
@@ -69,9 +69,14 @@ export class StoresService {
         items: true,
       },
     });
-    const overdueDebtsSum = overdueDebtsList.reduce((sum, d) => {
-      return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
-    }, 0);
+    let overdueDebtsSum = 0;
+    for (const d of overdueDebtsList) {
+      const netDebt = customerDebtsMap.get(d.customerId) || 0;
+      if (netDebt > 0) {
+        const debtAmount = d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+        overdueDebtsSum += Math.min(debtAmount, netDebt);
+      }
+    }
 
     // 5. Bugun to‘lanishi kerak bo‘lgan qarzlar summasi
     const todayDebtsList = await this.prisma.debt.findMany({
@@ -85,9 +90,14 @@ export class StoresService {
         items: true,
       },
     });
-    const todayDebtsSum = todayDebtsList.reduce((sum, d) => {
-      return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
-    }, 0);
+    let todayDebtsSum = 0;
+    for (const d of todayDebtsList) {
+      const netDebt = customerDebtsMap.get(d.customerId) || 0;
+      if (netDebt > 0) {
+        const debtAmount = d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+        todayDebtsSum += Math.min(debtAmount, netDebt);
+      }
+    }
 
     // 6. Eng ko‘p qarzdor mijozlar (Top-5)
     const topCustomers = activeCustomers

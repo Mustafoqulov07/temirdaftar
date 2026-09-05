@@ -288,6 +288,14 @@ export class AuthService {
       passwordHash = await bcrypt.hash(dto.password, 10);
     }
 
+    const storeUpdateData: any = {};
+    if (dto.storeName) {
+      storeUpdateData.name = dto.storeName;
+    }
+    if (storeAddressToUpdate !== undefined) {
+      storeUpdateData.address = storeAddressToUpdate;
+    }
+
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -295,12 +303,11 @@ export class AuthService {
         ...(dto.phoneNumber && { phoneNumber: dto.phoneNumber }),
         ...(telegramIdToUpdate !== undefined && { telegramId: telegramIdToUpdate }),
         ...(passwordHash && { passwordHash }),
-        store: {
-          update: {
-            ...(dto.storeName && { name: dto.storeName }),
-            ...(storeAddressToUpdate !== undefined && { address: storeAddressToUpdate }),
+        ...(Object.keys(storeUpdateData).length > 0 && {
+          store: {
+            update: storeUpdateData,
           },
-        },
+        }),
       },
       include: { store: true },
     });

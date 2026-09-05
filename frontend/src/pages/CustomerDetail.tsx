@@ -189,8 +189,9 @@ export const CustomerDetail: React.FC = () => {
       return;
     }
 
-    const currentDebt = customer?.totalDebt || 0;
-    if (amountNum > currentDebt) {
+    const currentDebt = Math.round(Number(customer?.totalDebt || 0) * 100) / 100;
+    const roundedAmount = Math.round(amountNum * 100) / 100;
+    if (roundedAmount > currentDebt) {
       showToast("To'lov summasi mijoz qarzidan ko'p bo'lishi mumkin emas", 'error');
       return;
     }
@@ -198,7 +199,7 @@ export const CustomerDetail: React.FC = () => {
     try {
       await api.post('/payments', {
         customerId: id,
-        amount: amountNum,
+        amount: roundedAmount,
         comment: paymentComment || undefined,
       });
 
@@ -225,9 +226,10 @@ export const CustomerDetail: React.FC = () => {
 
   const handleResetDebtToZero = async () => {
     try {
+      const debtAmount = Math.round(Number(customer?.totalDebt || 0) * 100) / 100;
       await api.post('/payments', {
         customerId: id,
-        amount: Number(customer?.totalDebt || 0),
+        amount: debtAmount,
         comment: "Qarz nollashtirildi (tizim tomonidan)",
       });
 

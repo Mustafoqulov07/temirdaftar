@@ -178,8 +178,9 @@ export const Dashboard: React.FC = () => {
     }
 
     const selectedCustomer = allCustomersList.find((c) => c.id === selectedCustomerId);
-    const currentDebt = selectedCustomer ? Number(selectedCustomer.totalDebt) : 0;
-    if (amountNum > currentDebt) {
+    const currentDebt = selectedCustomer ? Math.round(Number(selectedCustomer.totalDebt) * 100) / 100 : 0;
+    const roundedAmount = Math.round(amountNum * 100) / 100;
+    if (roundedAmount > currentDebt) {
       showToast("To'lov summasi mijoz qarzidan ko'p bo'lishi mumkin emas", 'error');
       return;
     }
@@ -187,7 +188,7 @@ export const Dashboard: React.FC = () => {
     try {
       await api.post('/payments', {
         customerId: selectedCustomerId,
-        amount: amountNum,
+        amount: roundedAmount,
         comment: paymentComment || undefined,
       });
 
@@ -202,8 +203,8 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const openDebtModal = () => {
-    fetchAllCustomersForSelect();
+  const openDebtModal = async () => {
+    await fetchAllCustomersForSelect();
     // Default to'lov muddati: bugundan 7 kun keyin
     const defaultDate = new Date();
     defaultDate.setDate(defaultDate.getDate() + 7);
@@ -211,8 +212,8 @@ export const Dashboard: React.FC = () => {
     setDebtModalOpen(true);
   };
 
-  const openPaymentModal = () => {
-    fetchAllCustomersForSelect();
+  const openPaymentModal = async () => {
+    await fetchAllCustomersForSelect();
     setPaymentModalOpen(true);
   };
 
@@ -572,16 +573,32 @@ export const Dashboard: React.FC = () => {
                 <select
                   required
                   value={selectedCustomerId}
-                  onChange={(e) => setSelectedCustomerId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCustomerId(e.target.value);
+                    const cust = allCustomersList.find((c) => c.id === e.target.value);
+                    if (cust && Number(cust.totalDebt) > 0) {
+                      setPaymentAmount(String(Math.round(Number(cust.totalDebt) * 100) / 100));
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-900 bg-white"
                 >
                   <option value="">-- Mijozni tanlang --</option>
                   {allCustomersList.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.fullName}
+                      {c.fullName} ({formatMoney(Number(c.totalDebt))})
                     </option>
                   ))}
                 </select>
+                {selectedCustomerId && (
+                  <div className="mt-1.5 flex items-center justify-between text-xs">
+                    <span className="text-gray-500">
+                      Joriy qarzdorlik:
+                    </span>
+                    <span className="font-bold text-red-600">
+                      {formatMoney(Number(allCustomersList.find((c) => c.id === selectedCustomerId)?.totalDebt || 0))}
+                    </span>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Toʻlov summasi (soʻmda)</label>
