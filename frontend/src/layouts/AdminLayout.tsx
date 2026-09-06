@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, store, logout } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -92,15 +92,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
           </div>
 
           <div className="flex items-center space-x-3">
-            {/* If super admin happens to own a store, show switch button, otherwise hide completely */}
-            {store && (
-              <Link
-                to="/"
-                className="hidden lg:flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition"
-              >
-                <span>🏬 {store.name}</span>
-              </Link>
-            )}
 
             {/* Admin Profile Chip */}
             <div className="hidden sm:flex items-center space-x-2.5 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-xl">
