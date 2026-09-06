@@ -31,6 +31,12 @@ export class AuthController {
     return this.authService.loginTelegram(initData);
   }
 
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refreshTokens(@Body('refreshToken') refreshToken: string) {
+    return this.authService.refreshTokens(refreshToken);
+  }
+
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

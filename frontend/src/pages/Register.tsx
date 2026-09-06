@@ -25,11 +25,8 @@ export const Register: React.FC = () => {
     const val = e.target.value;
     const digits = val.replace(/\D/g, '');
     const localDigits = digits.startsWith('998') ? digits.slice(3) : digits;
-    const last9 = localDigits.slice(-9);
-    const result = '+998' + last9;
-    if (result.length <= 13) {
-      setPhoneNumber(result);
-    }
+    const valid9 = localDigits.slice(0, 9);
+    setPhoneNumber('+998' + valid9);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,8 +54,8 @@ export const Register: React.FC = () => {
         storeName,
         telegramId: telegramRegData?.telegramId || undefined,
       });
-      const { token, user, store } = response.data;
-      login(token, user, store);
+      const { token, accessToken, refreshToken, user, store } = response.data;
+      login(accessToken || token, user, store, refreshToken);
       navigate('/');
     } catch (err: any) {
       setError(

@@ -60,15 +60,10 @@ export class AuthService {
       return { user: newUser, store: newStore };
     });
 
-    const token = this.jwtService.sign({
-      sub: user.id,
-      storeId: store.id,
-      phoneNumber: user.phoneNumber,
-      role: user.role || 'USER',
-    });
+    const tokens = this.generateTokens(user, store.id);
 
     return {
-      token,
+      ...tokens,
       user: {
         id: user.id,
         phoneNumber: user.phoneNumber,
@@ -79,6 +74,55 @@ export class AuthService {
         id: store.id,
         name: store.name,
       },
+    };
+  }
+
+  private getBlockedException() {
+    const supportPhone = (
+      process.env.SUPER_ADMIN_PHONE ||
+      process.env.ADMIN_PHONE ||
+      '+998937145515'
+    ).trim();
+
+    const supportTelegram = (
+      process.env.ADMIN_TELEGRAM_USERNAME ||
+      process.env.SUPPORT_TELEGRAM ||
+      'https://t.me/qarzdor_admin'
+    ).trim();
+
+    return new UnauthorizedException({
+      message: 'Sizning profilingiz bloklangan. Iltimos, administrator bilan bogʻlaning.',
+      isBlocked: true,
+      supportPhone,
+      supportTelegram,
+    });
+  }
+
+  private generateTokens(user: { id: string; phoneNumber: string; role?: string }, storeId: string | null) {
+    const payload = {
+      sub: user.id,
+      storeId: storeId || null,
+      phoneNumber: user.phoneNumber,
+      role: user.role || 'USER',
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '1h',
+    });
+
+    const refreshSecret = (process.env['JWT_REFRESH_SECRET'] || process.env['JWT_SECRET'] || 'qarzdor-refresh-secret-123').trim();
+    const refreshToken = this.jwtService.sign(
+      { sub: user.id, tokenType: 'refresh' },
+      {
+        secret: refreshSecret,
+        expiresIn: '30d',
+      },
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      token: accessToken,
     };
   }
 
@@ -93,7 +137,7 @@ export class AuthService {
     }
 
     if (user.isBlocked) {
-      throw new UnauthorizedException('Sizning profilingiz bloklangan. Iltimos, administrator bilan bogʻlaning.');
+      throw this.getBlockedException();
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
@@ -101,15 +145,10 @@ export class AuthService {
       throw new UnauthorizedException('Telefon raqam yoki parol notoʻgʻri');
     }
 
-    const token = this.jwtService.sign({
-      sub: user.id,
-      storeId: user.store ? user.store.id : null,
-      phoneNumber: user.phoneNumber,
-      role: user.role || 'USER',
-    });
+    const tokens = this.generateTokens(user, user.store ? user.store.id : null);
 
     return {
-      token,
+      ...tokens,
       user: {
         id: user.id,
         phoneNumber: user.phoneNumber,
@@ -205,18 +244,13 @@ export class AuthService {
     }
 
     if (user.isBlocked) {
-      throw new UnauthorizedException('Sizning profilingiz bloklangan. Iltimos, administrator bilan bogʻlaning.');
+      throw this.getBlockedException();
     }
 
-    const token = this.jwtService.sign({
-      sub: user.id,
-      storeId: user.store ? user.store.id : null,
-      phoneNumber: user.phoneNumber,
-      role: user.role || 'USER',
-    });
+    const tokens = this.generateTokens(user, user.store ? user.store.id : null);
 
     return {
-      token,
+      ...tokens,
       user: {
         id: user.id,
         phoneNumber: user.phoneNumber,
@@ -230,6 +264,57 @@ export class AuthService {
           }
         : null,
     };
+  }
+
+  async refreshTokens(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token talab qilinadi');
+    }
+
+    try {
+      const refreshSecret = (process.env['JWT_REFRESH_SECRET'] || process.env['JWT_SECRET'] || 'qarzdor-refresh-secret-123').trim();
+      const payload = this.jwtService.verify(refreshToken, { secret: refreshSecret });
+
+      if (payload.tokenType !== 'refresh' || !payload.sub) {
+        throw new UnauthorizedException('Yaroqsiz refresh token');
+      }
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        include: { store: true },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Foydalanuvchi topilmadi');
+      }
+
+      if (user.isBlocked) {
+        throw this.getBlockedException();
+      }
+
+      const tokens = this.generateTokens(user, user.store?.id || null);
+
+      return {
+        ...tokens,
+        user: {
+          id: user.id,
+          phoneNumber: user.phoneNumber,
+          fullName: user.fullName,
+          role: user.role || 'USER',
+        },
+        store: user.store
+          ? {
+              id: user.store.id,
+              name: user.store.name,
+            }
+          : null,
+      };
+    } catch (err: any) {
+      if (err instanceof UnauthorizedException) {
+        throw err;
+      }
+      throw new UnauthorizedException('Refresh token muddati tugagan yoki yaroqsiz');
+    }
   }
 
   async getProfile(userId: string) {

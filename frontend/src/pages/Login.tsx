@@ -10,6 +10,11 @@ export const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
+  const [blockedModalOpen, setBlockedModalOpen] = useState(false);
+  const [supportInfo, setSupportInfo] = useState<{ phone: string; telegram: string }>({
+    phone: '+998937145515',
+    telegram: 'https://t.me/qarzdor_admin',
+  });
   
   const { login } = useAuth();
   const { showToast } = useToast();
@@ -23,19 +28,13 @@ export const Login: React.FC = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState('');
 
-  // Telefon raqamini faqat +998 va 9 ta raqam formatiga o'tkazish
+  // Telefon raqamini to'g'ri shaklda saqlash: faqat dastlabki 9 ta raqam
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    // Faqat raqamlarni olish
     const digits = val.replace(/\D/g, '');
-    // Agar 998 bilan boshlansa, uni olib tashlaymiz
     const localDigits = digits.startsWith('998') ? digits.slice(3) : digits;
-    // Oxirgi 9 ta raqamni olamiz
-    const last9 = localDigits.slice(-9);
-    const result = '+998' + last9;
-    if (result.length <= 13) {
-      setPhoneNumber(result);
-    }
+    const valid9 = localDigits.slice(0, 9);
+    setPhoneNumber('+998' + valid9);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,14 +53,21 @@ export const Login: React.FC = () => {
         phoneNumber,
         password,
       });
-      const { token, user, store } = response.data;
-      login(token, user, store);
+      const { token, accessToken, refreshToken, user, store } = response.data;
+      login(accessToken || token, user, store, refreshToken);
       if (user.role === 'SUPER_ADMIN') {
         navigate('/admin', { replace: true });
       } else {
         navigate('/', { replace: true });
       }
     } catch (err: any) {
+      if (err.response?.data?.isBlocked || err.response?.data?.message?.includes('bloklangan')) {
+        setSupportInfo({
+          phone: err.response?.data?.supportPhone || '+998937145515',
+          telegram: err.response?.data?.supportTelegram || 'https://t.me/qarzdor_admin',
+        });
+        setBlockedModalOpen(true);
+      }
       setError(
         err.response?.data?.message || 
         'Tizimga kirishda xatolik yuz berdi. Iltimos, qayta urining.'
@@ -75,11 +81,8 @@ export const Login: React.FC = () => {
     const val = e.target.value;
     const digits = val.replace(/\D/g, '');
     const localDigits = digits.startsWith('998') ? digits.slice(3) : digits;
-    const last9 = localDigits.slice(-9);
-    const result = '+998' + last9;
-    if (result.length <= 13) {
-      setResetPhone(result);
-    }
+    const valid9 = localDigits.slice(0, 9);
+    setResetPhone('+998' + valid9);
   };
 
   const handleRequestCode = async (e: React.FormEvent) => {
@@ -338,6 +341,67 @@ export const Login: React.FC = () => {
                 className="w-full py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
               >
                 Bekor qilish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Blocked Account Modal with Direct Admin Contact */}
+      {blockedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-red-100 text-center space-y-5">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-red-50 text-red-600 shadow-inner">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-gray-900 tracking-tight">Profilingiz Bloklangan!</h3>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Ushbu doʻkon akkaunti administrator tomonidan cheklangan. Hisobni qayta faollashtirish uchun Super Administratorga murojaat qiling:
+              </p>
+            </div>
+
+            <div className="space-y-2.5 pt-2">
+              <a
+                href={
+                  supportInfo.telegram.startsWith('http')
+                    ? supportInfo.telegram
+                    : `https://t.me/${supportInfo.telegram.replace('@', '')}`
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-sm shadow-md shadow-sky-500/20 transition-all duration-200"
+              >
+                <span>💬 Telegram orqali yozish</span>
+              </a>
+
+              <a
+                href={`tel:${supportInfo.phone}`}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all duration-200"
+              >
+                <span>📞 Qoʻngʻiroq qilish ({supportInfo.phone})</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setBlockedModalOpen(false)}
+                className="w-full py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+              >
+                Tushunarli, yopish
               </button>
             </div>
           </div>
