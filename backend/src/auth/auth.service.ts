@@ -81,13 +81,13 @@ export class AuthService {
     const supportPhone = (
       process.env.SUPER_ADMIN_PHONE ||
       process.env.ADMIN_PHONE ||
-      '+998937145515'
+      '+998937145514'
     ).trim();
 
     const supportTelegram = (
       process.env.ADMIN_TELEGRAM_USERNAME ||
       process.env.SUPPORT_TELEGRAM ||
-      'https://t.me/qarzdor_admin'
+      'https://t.me/Mustafoqulovvvvv'
     ).trim();
 
     return new UnauthorizedException({
