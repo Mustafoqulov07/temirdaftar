@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Get, Patch, HttpCode, HttpStatus, UseGuards, Res } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -54,7 +54,7 @@ export class AuthController {
   @Post('telegram')
   @HttpCode(HttpStatus.OK)
   async loginTelegram(@Body('initData') initData: string, @Res() res: Response) {
-    const result = await this.authService.loginTelegram(initData);
+    const result: any = await this.authService.loginTelegram(initData);
     if (result.isNew) {
       return res.json(result);
     }
