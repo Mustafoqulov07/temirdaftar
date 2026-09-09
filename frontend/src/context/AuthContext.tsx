@@ -46,19 +46,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadFromLocalStorage = () => {
       try {
         const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-        const storedStore = localStorage.getItem('store');
 
-        if (storedToken && storedUser) {
+        if (storedToken) {
           setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-          setStore(storedStore ? JSON.parse(storedStore) : null);
+          // User va store faqat /auth/profile-dan fetch qilinadi
         }
       } catch (e) {
-        console.error('localStorage dan maʼlumotlarni yuklashda xatolik:', e);
+        console.error('localStorage dan token yuklashda xatolik:', e);
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('store');
       } finally {
         setLoading(false);
       }
