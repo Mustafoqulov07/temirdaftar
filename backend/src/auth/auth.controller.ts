@@ -37,7 +37,10 @@ export class AuthController {
   async register(@Body() dto: RegisterDto, @Res() res: Response) {
     const result = await this.authService.register(dto);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.json({ message: 'Registration successful' });
+    return res.json({
+      token: result.accessToken,
+      message: 'Registration successful'
+    });
   }
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
@@ -46,7 +49,10 @@ export class AuthController {
   async login(@Body() dto: LoginDto, @Res() res: Response) {
     const result = await this.authService.login(dto);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.json({ message: 'Login successful' });
+    return res.json({
+      token: result.accessToken,
+      message: 'Login successful'
+    });
   }
 
   @Post('telegram')
@@ -57,7 +63,10 @@ export class AuthController {
       return res.json(result);
     }
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.json({ message: 'Login successful' });
+    return res.json({
+      token: result.accessToken,
+      message: 'Login successful'
+    });
   }
 
   @Post('refresh')
@@ -65,7 +74,10 @@ export class AuthController {
   async refreshTokens(@Body('refreshToken') refreshToken: string, @Res() res: Response) {
     const result = await this.authService.refreshTokens(refreshToken);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.json({ message: 'Token refreshed' });
+    return res.json({
+      token: result.accessToken,
+      message: 'Token refreshed'
+    });
   }
 
   @Get('profile')

@@ -1,15 +1,24 @@
 import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
   withCredentials: true,
 });
 
-// So'rov yuborishda token header-ga qo'shish yoki cookies-dan olish
+let currentToken: string | null = null;
+
+// Token state-dan set qilish uchun (AuthContext-dan chaqiriladi)
+export const setApiToken = (token: string | null) => {
+  currentToken = token;
+};
+
+// So'rov yuborishda token header-ga qo'shish
 api.interceptors.request.use(
   (config) => {
-    // Token localStorage-dan o'qish (agarda bor bo'lsa)
-    // Aks holda cookies-dan avtomatik yuboriladi (withCredentials: true)
+    if (currentToken) {
+      config.headers.Authorization = `Bearer ${currentToken}`;
+    }
     return config;
   },
   (error) => {
@@ -33,18 +42,24 @@ api.interceptors.response.use(
 
       try {
         const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-        await axios.post(
+        const response = await axios.post(
           `${baseURL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
 
-        // Token cookies-da yangilandi, response-da token yo'q
+        // Response-dan yangi token
+        const { token } = response.data;
+        if (token) {
+          setApiToken(token);
+        }
+
         // Original so'rovni retry qilish
+        originalRequest.headers.Authorization = `Bearer ${token}`;
         return api(originalRequest);
       } catch (refreshErr) {
         console.warn('Token refresh failed:', refreshErr);
-        localStorage.removeItem('token');
+        setApiToken(null);
         if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
           window.location.href = '/login';
         }
@@ -53,7 +68,7 @@ api.interceptors.response.use(
     }
 
     if (error.response && error.response.status === 401 && !isAuthEndpoint) {
-      localStorage.removeItem('token');
+      setApiToken(null);
       if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
         window.location.href = '/login';
       }

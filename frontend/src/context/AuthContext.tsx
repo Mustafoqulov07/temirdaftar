@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import api, { setApiToken } from '../services/api';
 
 interface User {
   id: string;
@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadFromLocalStorage = () => {
       try {
-        // Token localStorage-da saqlanmaydi, faqat cookies-da saqlanyabdi
+        // Token memory-da saqlanadi, localStorage-da saqlanmaydi
       } catch (e) {
         console.error('Storage maʼlumotlarni yuklashda xatolik:', e);
       } finally {
@@ -67,12 +67,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             setLoading(false);
           } else {
-            // Token cookies-da saqlanyabdi
+            const { token: newToken } = res.data;
+            // Token-ni dastlabki saqlash
+            if (newToken) {
+              setApiToken(newToken);
+            }
+
             // User va store ma'lumotlarini fetch qilish
-            api.get('/auth/profile')
+            api.get('/auth/profile', {
+              headers: {
+                Authorization: `Bearer ${newToken}`
+              }
+            })
               .then((profileRes) => {
                 const { user, store } = profileRes.data;
-                login(null, user, store);
+                login(newToken, user, store);
                 setLoading(false);
               })
               .catch((err) => {
@@ -90,15 +99,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (token: string | null, newUser: User, newStore: Store | null) => {
-    // Token cookies-da saqlanyabdi, localStorage-ga saqlanmaydi
-    setToken(token);
+  const login = (newToken: string | null, newUser: User, newStore: Store | null) => {
+    // Token memory-da saqlash (API interceptor-da ishlatiladi)
+    if (newToken) {
+      setApiToken(newToken);
+    }
+    setToken(newToken);
     setUser(newUser);
     setStore(newStore);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    setApiToken(null);
     setToken(null);
     setUser(null);
     setStore(null);
