@@ -49,12 +49,12 @@ export const Login: React.FC = () => {
     }
 
     try {
-      const response = await api.post('/auth/login', {
+      await api.post('/auth/login', {
         phoneNumber,
         password,
       });
 
-      // Token cookies-da saqlanyabdi, localStorage-ga saqlanmaydi
+      // Token cookies-da saqlanyabdi, response-da token yo'q
       // User va store ma'lumotlarini fetch qilish
       const profileRes = await api.get('/auth/profile');
       const { user, store } = profileRes.data;

@@ -47,7 +47,7 @@ export const Register: React.FC = () => {
     }
 
     try {
-      const response = await api.post('/auth/register', {
+      await api.post('/auth/register', {
         phoneNumber,
         password: password || undefined,
         fullName,
@@ -55,7 +55,7 @@ export const Register: React.FC = () => {
         telegramId: telegramRegData?.telegramId || undefined,
       });
 
-      // Token cookies-da saqlanyabdi, localStorage-ga saqlanmaydi
+      // Token cookies-da saqlanyabdi, response-da token yo'q
       // User va store ma'lumotlarini fetch qilish
       const profileRes = await api.get('/auth/profile');
       const { user, store } = profileRes.data;
