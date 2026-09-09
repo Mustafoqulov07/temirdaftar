@@ -16,7 +16,6 @@ interface Store {
   address?: string | null;
 }
 
-
 interface TelegramRegData {
   telegramId: string;
   fullName: string;
