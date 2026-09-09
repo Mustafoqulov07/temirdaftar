@@ -37,6 +37,7 @@ export class AuthController {
   async register(@Body() dto: RegisterDto, @Res() res: Response) {
     const result = await this.authService.register(dto);
     return res.json({
+      token: result.accessToken,
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       user: result.user,
@@ -50,6 +51,7 @@ export class AuthController {
   async login(@Body() dto: LoginDto, @Res() res: Response) {
     const result = await this.authService.login(dto);
     return res.json({
+      token: result.accessToken,
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       user: result.user,
@@ -65,6 +67,7 @@ export class AuthController {
       return res.json(result);
     }
     return res.json({
+      token: result.accessToken,
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       user: result.user,
@@ -77,6 +80,7 @@ export class AuthController {
   async refreshTokens(@Body('refreshToken') refreshToken: string, @Res() res: Response) {
     const result = await this.authService.refreshTokens(refreshToken);
     return res.json({
+      token: result.accessToken,
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       user: result.user,
