@@ -108,13 +108,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = (newToken: string, newUser: User, newStore: Store | null) => {
     localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    if (newStore) {
-      localStorage.setItem('store', JSON.stringify(newStore));
-    } else {
-      localStorage.removeItem('store');
-    }
-
     setToken(newToken);
     setUser(newUser);
     setStore(newStore);
@@ -122,9 +115,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('store');
-
     setToken(null);
     setUser(null);
     setStore(null);
