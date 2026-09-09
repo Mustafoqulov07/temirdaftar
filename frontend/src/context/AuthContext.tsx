@@ -80,8 +80,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             const { token: newToken, accessToken } = res.data;
             const finalToken = newToken || accessToken;
-            login(finalToken, res.data.user, res.data.store || null);
-            setLoading(false);
+
+            // Token-ni dastlabki saqlash
+            localStorage.setItem('token', finalToken);
+
+            // User va store ma'lumotlarini fetch qilish
+            api.get('/auth/profile')
+              .then((profileRes) => {
+                const { user, store } = profileRes.data;
+                login(finalToken, user, store);
+                setLoading(false);
+              })
+              .catch((err) => {
+                console.error('Profile fetch failed:', err);
+                setLoading(false);
+              });
           }
         })
         .catch((err) => {

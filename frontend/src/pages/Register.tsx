@@ -54,8 +54,17 @@ export const Register: React.FC = () => {
         storeName,
         telegramId: telegramRegData?.telegramId || undefined,
       });
-      const { token, accessToken, user, store } = response.data;
-      login(token || accessToken, user, store);
+      const { token, accessToken } = response.data;
+      const finalToken = token || accessToken;
+
+      // Token-ni dastlabki saqlash
+      localStorage.setItem('token', finalToken);
+
+      // User va store ma'lumotlarini fetch qilish
+      const profileRes = await api.get('/auth/profile');
+      const { user, store } = profileRes.data;
+
+      login(finalToken, user, store);
       navigate('/');
     } catch (err: any) {
       setError(
