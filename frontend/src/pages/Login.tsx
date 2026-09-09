@@ -55,6 +55,10 @@ export const Login: React.FC = () => {
       });
       const { user, store } = response.data;
       login(user, store);
+
+      // Wait for state update to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       if (user.role === 'SUPER_ADMIN') {
         navigate('/admin', { replace: true });
       } else {

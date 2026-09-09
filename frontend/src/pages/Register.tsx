@@ -56,6 +56,10 @@ export const Register: React.FC = () => {
       });
       const { user, store } = response.data;
       login(user, store);
+
+      // Wait for state update to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       navigate('/');
     } catch (err: any) {
       setError(
