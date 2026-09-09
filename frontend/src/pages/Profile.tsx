@@ -128,10 +128,10 @@ export const Profile: React.FC = () => {
         password: password || undefined,
       });
 
-      const { user: updatedUser, store: updatedStore } = response.data;
-
+      const { token: newToken, user: updatedUser, store: updatedStore } = response.data;
+      
       // Update global auth context
-      login(updatedUser, updatedStore);
+      login(newToken, updatedUser, updatedStore);
       
       setSuccess('Profil maʼlumotlari muvaffaqiyatli saqlandi!');
       setIsEditing(false);

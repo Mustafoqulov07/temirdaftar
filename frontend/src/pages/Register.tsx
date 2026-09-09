@@ -54,12 +54,8 @@ export const Register: React.FC = () => {
         storeName,
         telegramId: telegramRegData?.telegramId || undefined,
       });
-      const { user, store } = response.data;
-      login(user, store);
-
-      // Wait for state update to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-
+      const { token, accessToken, refreshToken, user, store } = response.data;
+      login(accessToken || token, user, store, refreshToken);
       navigate('/');
     } catch (err: any) {
       setError(

@@ -16,6 +16,7 @@ interface Store {
   address?: string | null;
 }
 
+
 interface TelegramRegData {
   telegramId: string;
   fullName: string;
@@ -25,8 +26,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   store: Store | null;
+  token: string | null;
+  refreshToken: string | null;
   telegramRegData: TelegramRegData | null;
-  login: (user: User, store: Store | null) => void;
+  login: (token: string, user: User, store: Store | null, refreshToken?: string | null) => void;
   logout: () => void;
   loading: boolean;
 }
@@ -34,6 +37,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [token, setToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [telegramRegData, setTelegramRegData] = useState<TelegramRegData | null>(null);
@@ -42,15 +47,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadFromLocalStorage = () => {
       try {
+        const storedToken = localStorage.getItem('token');
+        const storedRefreshToken = localStorage.getItem('refreshToken');
         const storedUser = localStorage.getItem('user');
         const storedStore = localStorage.getItem('store');
 
-        if (storedUser) {
+        if (storedToken && storedUser) {
+          setToken(storedToken);
+          setRefreshToken(storedRefreshToken);
           setUser(JSON.parse(storedUser));
           setStore(storedStore ? JSON.parse(storedStore) : null);
         }
       } catch (e) {
         console.error('localStorage dan maʼlumotlarni yuklashda xatolik:', e);
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         localStorage.removeItem('store');
       } finally {
@@ -72,8 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             setLoading(false);
           } else {
-            const { user: newUser, store: newStore } = res.data;
-            login(newUser, newStore || null);
+            const { token: newToken, accessToken, refreshToken: newRefreshToken, user: newUser, store: newStore } = res.data;
+            login(accessToken || newToken, newUser, newStore || null, newRefreshToken);
             setLoading(false);
           }
         })
@@ -86,7 +97,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (newUser: User, newStore: Store | null) => {
+  const login = (newToken: string, newUser: User, newStore: Store | null, newRefreshToken?: string | null) => {
+    localStorage.setItem('token', newToken);
+    if (newRefreshToken) {
+      localStorage.setItem('refreshToken', newRefreshToken);
+      setRefreshToken(newRefreshToken);
+    }
     localStorage.setItem('user', JSON.stringify(newUser));
     if (newStore) {
       localStorage.setItem('store', JSON.stringify(newStore));
@@ -94,27 +110,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('store');
     }
 
+    setToken(newToken);
     setUser(newUser);
     setStore(newStore);
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.removeItem('store');
 
+    setToken(null);
+    setRefreshToken(null);
     setUser(null);
     setStore(null);
     setTelegramRegData(null);
-
-    api.post('/auth/logout').catch(() => {});
   };
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: !!user,
+        isAuthenticated: !!token,
         user,
         store,
+        token,
+        refreshToken,
         telegramRegData,
         login,
         logout,
