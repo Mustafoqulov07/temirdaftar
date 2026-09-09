@@ -36,7 +36,16 @@ api.interceptors.response.use(
       try {
         const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
         const refreshToken = localStorage.getItem('refreshToken');
-        const response = await axios.post(`${baseURL}/auth/refresh`, { refreshToken }, { withCredentials: true });
+
+        if (!refreshToken) {
+          throw new Error('No refresh token found');
+        }
+
+        const response = await axios.post(
+          `${baseURL}/auth/refresh`,
+          { refreshToken },
+          { withCredentials: true }
+        );
 
         // Response-dan yangi token-larni saqlash
         const { token, refreshToken: newRefreshToken } = response.data;
