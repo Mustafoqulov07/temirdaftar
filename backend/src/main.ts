@@ -3,9 +3,13 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Cookie parser
+  app.use(cookieParser());
 
   // HTTP Security Headers (XSS, Clickjacking, MIME-sniffing himoyasi)
   app.use(helmet());

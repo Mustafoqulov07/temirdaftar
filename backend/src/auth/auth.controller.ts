@@ -1,5 +1,5 @@
-import { Body, Controller, Post, Get, Patch, HttpCode, HttpStatus, UseGuards, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import { Body, Controller, Post, Get, Patch, HttpCode, HttpStatus, UseGuards, Res, Req } from '@nestjs/common';
+import type { Response, Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -71,7 +71,8 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refreshTokens(@Body('refreshToken') refreshToken: string, @Res() res: Response) {
+  async refreshTokens(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = (req.cookies as any)?.refreshToken;
     const result = await this.authService.refreshTokens(refreshToken);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
     return res.json({

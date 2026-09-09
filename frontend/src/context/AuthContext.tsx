@@ -107,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Token memory-da saqlash (API interceptor-da ishlatiladi)
     if (newToken) {
       setApiToken(newToken);
+      localStorage.setItem('token', newToken);
     }
     setToken(newToken);
     setUser(newUser);
@@ -119,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setStore(null);
     setTelegramRegData(null);
+    localStorage.removeItem('token');
   };
 
   return (
