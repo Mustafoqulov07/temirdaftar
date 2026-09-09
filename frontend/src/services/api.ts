@@ -5,13 +5,11 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// So'rov yuborishda token header-ga qo'shish
+// So'rov yuborishda token header-ga qo'shish yoki cookies-dan olish
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Token localStorage-dan o'qish (agarda bor bo'lsa)
+    // Aks holda cookies-dan avtomatik yuboriladi (withCredentials: true)
     return config;
   },
   (error) => {
@@ -42,19 +40,12 @@ api.interceptors.response.use(
         );
 
         // Response-dan yangi token-ni saqlash (cookies-dan refreshToken avtomatik)
-        const { token, accessToken } = response.data;
-        const newToken = token || accessToken;
-        if (newToken) {
-          localStorage.setItem('token', newToken);
-        }
+        // Token-ni localStorage-ga saqlash kerak emas, faqat cookies-da saqlash kerak
 
-        // Original so'rovni retry qilish yangi token bilan
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        // Original so'rovni retry qilish
         return api(originalRequest);
       } catch (refreshErr) {
         console.warn('Token refresh failed:', refreshErr);
-        localStorage.removeItem('user');
-        localStorage.removeItem('store');
         localStorage.removeItem('token');
         if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
           window.location.href = '/login';
@@ -64,8 +55,6 @@ api.interceptors.response.use(
     }
 
     if (error.response && error.response.status === 401 && !isAuthEndpoint) {
-      localStorage.removeItem('user');
-      localStorage.removeItem('store');
       localStorage.removeItem('token');
       if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
         window.location.href = '/login';

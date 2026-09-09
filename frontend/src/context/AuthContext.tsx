@@ -28,7 +28,7 @@ interface AuthContextType {
   store: Store | null;
   token: string | null;
   telegramRegData: TelegramRegData | null;
-  login: (token: string, user: User, store: Store | null) => void;
+  login: (token: string | null, user: User, store: Store | null) => void;
   logout: () => void;
   loading: boolean;
 }
@@ -45,15 +45,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadFromLocalStorage = () => {
       try {
-        const storedToken = localStorage.getItem('token');
-
-        if (storedToken) {
-          setToken(storedToken);
-          // User va store faqat /auth/profile-dan fetch qilinadi
-        }
+        // Token localStorage-da saqlanmaydi, faqat cookies-da saqlanyabdi
       } catch (e) {
-        console.error('localStorage dan token yuklashda xatolik:', e);
-        localStorage.removeItem('token');
+        console.error('Storage maʼlumotlarni yuklashda xatolik:', e);
       } finally {
         setLoading(false);
       }
@@ -73,17 +67,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             setLoading(false);
           } else {
-            const { token: newToken, accessToken } = res.data;
-            const finalToken = newToken || accessToken;
-
-            // Token-ni dastlabki saqlash
-            localStorage.setItem('token', finalToken);
-
+            // Token cookies-da saqlanyabdi
             // User va store ma'lumotlarini fetch qilish
             api.get('/auth/profile')
               .then((profileRes) => {
                 const { user, store } = profileRes.data;
-                login(finalToken, user, store);
+                login(null, user, store);
                 setLoading(false);
               })
               .catch((err) => {
@@ -93,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         })
         .catch((err) => {
-          console.error('Telegram authentication failed, falling back to local storage:', err);
+          console.error('Telegram authentication failed:', err);
           loadFromLocalStorage();
         });
     } else {
@@ -101,9 +90,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (newToken: string, newUser: User, newStore: Store | null) => {
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
+  const login = (token: string | null, newUser: User, newStore: Store | null) => {
+    // Token cookies-da saqlanyabdi, localStorage-ga saqlanmaydi
+    setToken(token);
     setUser(newUser);
     setStore(newStore);
   };

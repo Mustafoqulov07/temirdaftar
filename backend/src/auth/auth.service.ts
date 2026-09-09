@@ -102,7 +102,6 @@ export class AuthService {
     const payload = {
       sub: user.id,
       storeId: storeId || null,
-      phoneNumber: user.phoneNumber,
       role: user.role || 'USER',
     };
 
