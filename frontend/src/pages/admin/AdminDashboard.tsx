@@ -6,6 +6,7 @@ import {
   PaperAirplaneIcon,
   CurrencyDollarIcon,
   ArrowUpIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 
 interface TrendItem {
@@ -76,7 +77,7 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   const formatMoney = (val: number) => {
-    return new Intl.NumberFormat('uz-UZ').format(val || 0) + " so'm";
+    return new Intl.NumberFormat('uz-UZ').format(val || 0);
   };
 
   const formatDate = (dateStr: string) => {
@@ -92,6 +93,10 @@ export const AdminDashboard: React.FC = () => {
   const totalDebts = stats?.totalDebtsSum || 0;
   const totalPayments = stats?.totalPaymentsSum || 0;
   const recoveryRate = totalDebts > 0 ? Math.min(Math.round((totalPayments / totalDebts) * 100), 100) : 0;
+  const maxChartValue = Math.max(
+    ...(stats?.timeline || []).map((t) => Math.max(t.debts, t.payments)),
+    100000
+  );
 
   if (loading) {
     return (
@@ -119,24 +124,26 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Boshqaruv Paneli</h1>
-          <p className="text-gray-600 text-sm mt-1">Tizim faoliyatining umumiy ko'rinishi</p>
+          <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Boshqaruv Markazi
+          </h1>
+          <p className="text-gray-600 text-sm mt-2">Tizim faoliyatining real-time analitikasi</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={fetchStats}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-gray-700"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg hover:border-blue-300 transition font-medium text-blue-700 hover:text-blue-800"
           >
             <ArrowPathIcon className="w-4 h-4" />
             Yangilash
           </button>
           <Link
             to="/admin/broadcast"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition font-medium shadow-lg shadow-blue-600/30"
           >
             <PaperAirplaneIcon className="w-4 h-4" />
             Xabar Yuborish
@@ -144,166 +151,222 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Stats Grid */}
+      {/* Main KPI Cards - Glassmorphism Style */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Debts */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">Jami Berilgan Qarzlar</span>
-            <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 p-8 hover:shadow-xl transition-all duration-300 group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400 rounded-full opacity-10 group-hover:opacity-20 transition -mr-8 -mt-8"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold text-blue-700 uppercase tracking-wider">Berilgan Qarzlar</span>
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                <CurrencyDollarIcon className="w-6 h-6" />
+              </div>
+            </div>
+            <p className="text-4xl font-black text-blue-900 mb-2">{formatMoney(stats?.totalDebtsSum || 0)}</p>
+            <p className="text-sm text-blue-700">
+              <span className="font-bold">{stats?.debtsCount || 0}</span> ta yozuv
+            </p>
+            {stats?.trends.debts && (
+              <div className="mt-3 flex items-center gap-1">
+                <span className={`text-xs font-bold ${stats.trends.debts.direction === 'up' ? 'text-red-600' : 'text-green-600'}`}>
+                  {stats.trends.debts.direction === 'up' ? '↑' : '↓'} {stats.trends.debts.percent}%
+                </span>
+              </div>
+            )}
           </div>
-          <p className="text-3xl font-bold text-gray-900">{formatMoney(stats?.totalDebtsSum || 0)}</p>
-          <p className="text-xs text-gray-500 mt-2">{stats?.debtsCount || 0} ta yozuv</p>
         </div>
 
         {/* Total Payments */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">Jami Undirilgan Toʻlovlar</span>
-            <ArrowUpIcon className="w-5 h-5 text-green-600" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{formatMoney(stats?.totalPaymentsSum || 0)}</p>
-          <p className="text-xs text-gray-500 mt-2">{stats?.paymentsCount || 0} ta toʻlov</p>
-        </div>
-
-        {/* Outstanding Balance */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">Kutilayotgan Qoldiq</span>
-            <CurrencyDollarIcon className="w-5 h-5 text-orange-600" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{formatMoney(stats?.totalBalance || 0)}</p>
-          <div className="mt-3 flex items-center gap-2">
-            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-500 transition-all"
-                style={{ width: `${recoveryRate}%` }}
-              />
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 border border-green-200 p-8 hover:shadow-xl transition-all duration-300 group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-green-400 rounded-full opacity-10 group-hover:opacity-20 transition -mr-8 -mt-8"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold text-green-700 uppercase tracking-wider">Undirilgan Toʻlovlar</span>
+              <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center text-white">
+                <ArrowUpIcon className="w-6 h-6" />
+              </div>
             </div>
-            <span className="text-xs font-semibold text-gray-600">{recoveryRate}%</span>
+            <p className="text-4xl font-black text-green-900 mb-2">{formatMoney(stats?.totalPaymentsSum || 0)}</p>
+            <p className="text-sm text-green-700">
+              <span className="font-bold">{stats?.paymentsCount || 0}</span> ta toʻlov
+            </p>
+            {stats?.trends.payments && (
+              <div className="mt-3 flex items-center gap-1">
+                <span className={`text-xs font-bold ${stats.trends.payments.direction === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                  {stats.trends.payments.direction === 'up' ? '↑' : '↓'} {stats.trends.payments.percent}%
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Outstanding Balance with Progress */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200 p-8 hover:shadow-xl transition-all duration-300 group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-400 rounded-full opacity-10 group-hover:opacity-20 transition -mr-8 -mt-8"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold text-orange-700 uppercase tracking-wider">Qoldiq Balans</span>
+              <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center text-white">
+                <SparklesIcon className="w-6 h-6" />
+              </div>
+            </div>
+            <p className="text-4xl font-black text-orange-900 mb-4">{formatMoney(stats?.totalBalance || 0)}</p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm mb-1">
+                <span className="font-semibold text-orange-700">Qaytarilish Darajasi</span>
+                <span className="font-black text-orange-900">{recoveryRate}%</span>
+              </div>
+              <div className="h-3 bg-orange-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-1000 ease-out"
+                  style={{ width: `${recoveryRate}%` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-medium">Doʻkonlar Soni</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{stats?.totalStores || 0}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-medium">Jami Mijozlar</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{stats?.totalCustomers || 0}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-medium">Foydalanuvchilar</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{stats?.totalUsers || 0}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-medium">Telegram Ulanishlari</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{stats?.telegramUsersCount || 0}</p>
-        </div>
-      </div>
+      {/* Advanced Chart - 7 Day Trend */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 text-white shadow-2xl border border-slate-700">
+        <h2 className="text-2xl font-black mb-2">Soʻnggi 7 Kunlik Tendensiya</h2>
+        <p className="text-slate-400 text-sm mb-6">Qarz va toʻlov oqimining kunlik dinamikasi</p>
 
-      {/* Chart */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Soʻnggi 7 Kunlik Dinamika</h2>
-        <div className="flex items-end justify-around h-48 gap-2">
-          {stats?.timeline && stats.timeline.length > 0 ? (
-            stats.timeline.map((day) => {
-              const maxValue = Math.max(...(stats.timeline || []).map(t => Math.max(t.debts, t.payments)), 100000);
-              return (
-                <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="flex gap-1 h-32 items-end w-full">
-                    <div
-                      className="flex-1 bg-blue-500 rounded-t hover:opacity-80 transition"
-                      style={{ height: `${Math.max((day.debts / maxValue) * 100, 5)}%` }}
-                      title={`Qarz: ${formatMoney(day.debts)}`}
-                    />
-                    <div
-                      className="flex-1 bg-green-500 rounded-t hover:opacity-80 transition"
-                      style={{ height: `${Math.max((day.payments / maxValue) * 100, 5)}%` }}
-                      title={`Toʻlov: ${formatMoney(day.payments)}`}
-                    />
+        <div className="space-y-6">
+          {/* Legend */}
+          <div className="flex gap-8 justify-center text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-blue-500 shadow-lg shadow-blue-500/50"></div>
+              <span>Berilgan Qarz</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-green-500 shadow-lg shadow-green-500/50"></div>
+              <span>Qaytgan Toʻlov</span>
+            </div>
+          </div>
+
+          {/* Chart Bars */}
+          <div className="flex items-end justify-around gap-3 h-64 pt-4">
+            {stats?.timeline && stats.timeline.length > 0 ? (
+              stats.timeline.map((day, idx) => {
+                const debtPercent = (day.debts / maxChartValue) * 100;
+                const paymentPercent = (day.payments / maxChartValue) * 100;
+                return (
+                  <div key={idx} className="flex-1 flex flex-col items-center group cursor-pointer">
+                    <div className="w-full flex gap-1 items-end h-full mb-2">
+                      {/* Debt Bar */}
+                      <div className="flex-1 flex flex-col items-center">
+                        <div
+                          className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg transition-all hover:from-blue-500 hover:to-blue-300 shadow-lg shadow-blue-600/50 relative group/bar"
+                          style={{ height: `${Math.max(debtPercent, 5)}%` }}
+                        >
+                          <div className="opacity-0 group-hover/bar:opacity-100 absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-950 text-white text-xs px-2 py-1 rounded whitespace-nowrap transition pointer-events-none">
+                            {formatMoney(day.debts)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Payment Bar */}
+                      <div className="flex-1 flex flex-col items-center">
+                        <div
+                          className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t-lg transition-all hover:from-green-500 hover:to-green-300 shadow-lg shadow-green-600/50 relative group/bar"
+                          style={{ height: `${Math.max(paymentPercent, 5)}%` }}
+                        >
+                          <div className="opacity-0 group-hover/bar:opacity-100 absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-950 text-white text-xs px-2 py-1 rounded whitespace-nowrap transition pointer-events-none">
+                            {formatMoney(day.payments)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-400 group-hover:text-white transition mt-2">{day.label}</p>
                   </div>
-                  <p className="text-xs text-gray-600 font-medium">{day.label}</p>
-                </div>
-              );
-            })
-          ) : (
-            <p className="text-gray-500">Maʼlumotlar yoʻq</p>
-          )}
-        </div>
-        <div className="flex gap-6 mt-4 justify-center">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded"></div>
-            <span className="text-sm text-gray-600">Berilgan Qarz</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span className="text-sm text-gray-600">Qaytgan Toʻlov</span>
+                );
+              })
+            ) : (
+              <p className="text-slate-500">Maʼlumotlar yoʻq</p>
+            )}
           </div>
         </div>
+      </div>
+
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Doʻkonlar", value: stats?.totalStores || 0, color: "from-blue-500 to-blue-600", icon: "🏪" },
+          { label: "Mijozlar", value: stats?.totalCustomers || 0, color: "from-green-500 to-green-600", icon: "👥" },
+          { label: "Foydalanuvchilar", value: stats?.totalUsers || 0, color: "from-purple-500 to-purple-600", icon: "👤" },
+          { label: "Telegram Ulanishlari", value: stats?.telegramUsersCount || 0, color: "from-cyan-500 to-cyan-600", icon: "✈️" },
+        ].map((stat, idx) => (
+          <div key={idx} className={`bg-gradient-to-br ${stat.color} rounded-xl p-5 text-white shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-2xl">{stat.icon}</p>
+              <span className="text-3xl opacity-10">•</span>
+            </div>
+            <p className="text-sm font-semibold opacity-80">{stat.label}</p>
+            <p className="text-3xl font-black mt-2">{stat.value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Recent Stores Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">Soʻnggi Ochilgan Doʻkonlar</h2>
-            <p className="text-sm text-gray-600 mt-1">Tizimga yaqinda qoʻshilgan savdo nuqtalari</p>
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-black text-gray-900">Soʻnggi Ochilgan Doʻkonlar</h2>
+              <p className="text-sm text-gray-600 mt-1">Tizimga yaqinda qoʻshilgan savdo nuqtalari</p>
+            </div>
+            <Link
+              to="/admin/stores"
+              className="text-sm font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition"
+            >
+              Barcha doʻkonlar →
+            </Link>
           </div>
-          <Link
-            to="/admin/stores"
-            className="text-sm font-medium text-blue-600 hover:text-blue-700"
-          >
-            Barcha doʻkonlar →
-          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Doʻkon Nomi</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Egasi</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Telefon</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Mijozlar</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Sana</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Holat</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Doʻkon</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Egasi</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Telefon</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Mijozlar</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Sana</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Holat</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-100">
               {stats?.recentStores && stats.recentStores.length > 0 ? (
-                stats.recentStores.map((store) => (
-                  <tr key={store.id} className="hover:bg-gray-50 transition">
+                stats.recentStores.map((store, idx) => (
+                  <tr key={store.id} className="hover:bg-blue-50 transition group">
                     <td className="px-6 py-4">
-                      <div>
-                        <p className="font-medium text-gray-900">{store.name}</p>
-                        {store.address && <p className="text-xs text-gray-600">{store.address}</p>}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">{store.name}</p>
+                          {store.address && <p className="text-xs text-gray-600">{store.address}</p>}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {store.ownerName}
-                      {store.role === 'SUPER_ADMIN' && (
-                        <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">
-                          Admin
-                        </span>
-                      )}
-                    </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-700">{store.ownerName}</td>
                     <td className="px-6 py-4 text-sm text-gray-600 font-mono">{store.ownerPhone}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded text-xs font-medium">
-                        {store.customerCount} ta
+                    <td className="px-6 py-4">
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full text-sm font-bold">
+                        {store.customerCount}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">{formatDate(store.createdAt)}</td>
                     <td className="px-6 py-4">
                       {store.isBlocked ? (
-                        <span className="bg-red-50 text-red-700 px-2.5 py-1 rounded text-xs font-medium">
+                        <span className="bg-red-100 text-red-800 px-3 py-1.5 rounded-full text-sm font-bold">
                           Bloklangan
                         </span>
                       ) : (
-                        <span className="bg-green-50 text-green-700 px-2.5 py-1 rounded text-xs font-medium">
+                        <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-sm font-bold">
                           Faol
                         </span>
                       )}
@@ -312,7 +375,7 @@ export const AdminDashboard: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 font-semibold">
                     Hozircha hech qanday doʻkon topilmadi
                   </td>
                 </tr>
