@@ -33,7 +33,7 @@ export class AuthController {
   async register(@Body() dto: RegisterDto, @Res() res: Response) {
     const result = await this.authService.register(dto);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    res.json({
+    return res.json({
       user: result.user,
       store: result.store,
     });
@@ -45,7 +45,7 @@ export class AuthController {
   async login(@Body() dto: LoginDto, @Res() res: Response) {
     const result = await this.authService.login(dto);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    res.json({
+    return res.json({
       user: result.user,
       store: result.store,
     });
@@ -59,7 +59,7 @@ export class AuthController {
       return res.json(result);
     }
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    res.json({
+    return res.json({
       user: result.user,
       store: result.store,
     });
@@ -70,7 +70,7 @@ export class AuthController {
   async refreshTokens(@Body('refreshToken') refreshToken: string, @Res() res: Response) {
     const result = await this.authService.refreshTokens(refreshToken);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    res.json({
+    return res.json({
       user: result.user,
       store: result.store,
     });
