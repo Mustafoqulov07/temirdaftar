@@ -2,12 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import {
-  BuildingStorefrontIcon,
-  UsersIcon,
-  PaperAirplaneIcon,
   ArrowPathIcon,
+  PaperAirplaneIcon,
   CurrencyDollarIcon,
-  TrendingUpIcon,
+  ArrowUpIcon,
 } from '@heroicons/react/24/outline';
 
 interface TrendItem {
@@ -162,7 +160,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Jami Undirilgan Toʻlovlar</span>
-            <TrendingUpIcon className="w-5 h-5 text-green-600" />
+            <ArrowUpIcon className="w-5 h-5 text-green-600" />
           </div>
           <p className="text-3xl font-bold text-gray-900">{formatMoney(stats?.totalPaymentsSum || 0)}</p>
           <p className="text-xs text-gray-500 mt-2">{stats?.paymentsCount || 0} ta toʻlov</p>
