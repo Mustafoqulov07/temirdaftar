@@ -53,8 +53,8 @@ export const Login: React.FC = () => {
         phoneNumber,
         password,
       });
-      const { token, accessToken, refreshToken, user, store } = response.data;
-      login(accessToken || token, user, store, refreshToken);
+      const { token, accessToken, user, store } = response.data;
+      login(token || accessToken, user, store);
       if (user.role === 'SUPER_ADMIN') {
         navigate('/admin', { replace: true });
       } else {

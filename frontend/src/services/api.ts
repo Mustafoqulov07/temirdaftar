@@ -35,36 +35,27 @@ api.interceptors.response.use(
 
       try {
         const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-        const refreshToken = localStorage.getItem('refreshToken');
-
-        if (!refreshToken) {
-          throw new Error('No refresh token found');
-        }
-
         const response = await axios.post(
           `${baseURL}/auth/refresh`,
-          { refreshToken },
+          {},
           { withCredentials: true }
         );
 
-        // Response-dan yangi token-larni saqlash
-        const { token, refreshToken: newRefreshToken } = response.data;
-        if (token) {
-          localStorage.setItem('token', token);
-        }
-        if (newRefreshToken) {
-          localStorage.setItem('refreshToken', newRefreshToken);
+        // Response-dan yangi token-ni saqlash (cookies-dan refreshToken avtomatik)
+        const { token, accessToken } = response.data;
+        const newToken = token || accessToken;
+        if (newToken) {
+          localStorage.setItem('token', newToken);
         }
 
         // Original so'rovni retry qilish yangi token bilan
-        originalRequest.headers.Authorization = `Bearer ${token}`;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshErr) {
         console.warn('Token refresh failed:', refreshErr);
         localStorage.removeItem('user');
         localStorage.removeItem('store');
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
           window.location.href = '/login';
         }
@@ -76,7 +67,6 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       localStorage.removeItem('store');
       localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
       if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
         window.location.href = '/login';
       }

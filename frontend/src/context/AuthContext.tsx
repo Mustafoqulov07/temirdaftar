@@ -27,9 +27,8 @@ interface AuthContextType {
   user: User | null;
   store: Store | null;
   token: string | null;
-  refreshToken: string | null;
   telegramRegData: TelegramRegData | null;
-  login: (token: string, user: User, store: Store | null, refreshToken?: string | null) => void;
+  login: (token: string, user: User, store: Store | null) => void;
   logout: () => void;
   loading: boolean;
 }
@@ -38,7 +37,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [telegramRegData, setTelegramRegData] = useState<TelegramRegData | null>(null);
@@ -48,20 +46,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadFromLocalStorage = () => {
       try {
         const storedToken = localStorage.getItem('token');
-        const storedRefreshToken = localStorage.getItem('refreshToken');
         const storedUser = localStorage.getItem('user');
         const storedStore = localStorage.getItem('store');
 
         if (storedToken && storedUser) {
           setToken(storedToken);
-          setRefreshToken(storedRefreshToken);
           setUser(JSON.parse(storedUser));
           setStore(storedStore ? JSON.parse(storedStore) : null);
         }
       } catch (e) {
         console.error('localStorage dan maʼlumotlarni yuklashda xatolik:', e);
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         localStorage.removeItem('store');
       } finally {
@@ -83,8 +78,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             setLoading(false);
           } else {
-            const { token: newToken, accessToken, refreshToken: newRefreshToken, user: newUser, store: newStore } = res.data;
-            login(accessToken || newToken, newUser, newStore || null, newRefreshToken);
+            const { token: newToken, accessToken } = res.data;
+            const finalToken = newToken || accessToken;
+            login(finalToken, res.data.user, res.data.store || null);
             setLoading(false);
           }
         })
@@ -97,12 +93,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (newToken: string, newUser: User, newStore: Store | null, newRefreshToken?: string | null) => {
+  const login = (newToken: string, newUser: User, newStore: Store | null) => {
     localStorage.setItem('token', newToken);
-    if (newRefreshToken) {
-      localStorage.setItem('refreshToken', newRefreshToken);
-      setRefreshToken(newRefreshToken);
-    }
     localStorage.setItem('user', JSON.stringify(newUser));
     if (newStore) {
       localStorage.setItem('store', JSON.stringify(newStore));
@@ -117,12 +109,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.removeItem('store');
 
     setToken(null);
-    setRefreshToken(null);
     setUser(null);
     setStore(null);
     setTelegramRegData(null);
@@ -135,7 +125,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         store,
         token,
-        refreshToken,
         telegramRegData,
         login,
         logout,
