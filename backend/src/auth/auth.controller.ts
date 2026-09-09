@@ -1,4 +1,5 @@
-import { Body, Controller, Post, Get, Patch, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, Patch, HttpCode, HttpStatus, UseGuards, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -11,30 +12,68 @@ import { GetUser, UserSession } from './decorators/get-user.decorator';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 1000, // 1 hour
+    });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+  }
+
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(@Body() dto: RegisterDto, @Res() res: Response) {
+    const result = await this.authService.register(dto);
+    this.setAuthCookies(res, result.accessToken, result.refreshToken);
+    res.json({
+      user: result.user,
+      store: result.store,
+    });
   }
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: LoginDto, @Res() res: Response) {
+    const result = await this.authService.login(dto);
+    this.setAuthCookies(res, result.accessToken, result.refreshToken);
+    res.json({
+      user: result.user,
+      store: result.store,
+    });
   }
 
   @Post('telegram')
   @HttpCode(HttpStatus.OK)
-  loginTelegram(@Body('initData') initData: string) {
-    return this.authService.loginTelegram(initData);
+  async loginTelegram(@Body('initData') initData: string, @Res() res: Response) {
+    const result = await this.authService.loginTelegram(initData);
+    if (result.isNew) {
+      return res.json(result);
+    }
+    this.setAuthCookies(res, result.accessToken, result.refreshToken);
+    res.json({
+      user: result.user,
+      store: result.store,
+    });
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refreshTokens(@Body('refreshToken') refreshToken: string) {
-    return this.authService.refreshTokens(refreshToken);
+  async refreshTokens(@Body('refreshToken') refreshToken: string, @Res() res: Response) {
+    const result = await this.authService.refreshTokens(refreshToken);
+    this.setAuthCookies(res, result.accessToken, result.refreshToken);
+    res.json({
+      user: result.user,
+      store: result.store,
+    });
   }
 
   @Get('profile')
@@ -71,5 +110,12 @@ export class AuthController {
   ) {
     return this.authService.resetPassword(phoneNumber, code, newPassword);
   }
-}
 
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Res() res: Response) {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    res.json({ message: 'Sessiya tugadi' });
+  }
+}

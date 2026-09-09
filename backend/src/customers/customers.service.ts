@@ -8,29 +8,29 @@ export class CustomersService {
   constructor(private prisma: PrismaService) {}
 
   async create(storeId: string, dto: CreateCustomerDto) {
-    if (dto.phoneNumber) {
-      // Do'kon egasining telefon raqami mijoz sifatida qo'shilishini bloklaymiz
-      const store = await this.prisma.store.findUnique({
-        where: { id: storeId },
-        include: { user: true },
-      });
-      if (store?.user?.phoneNumber && store.user.phoneNumber === dto.phoneNumber) {
-        throw new BadRequestException('Doʻkon egasining telefon raqamini mijoz sifatida qoʻshib boʻlmaydi');
-      }
-
-      const existing = await this.prisma.customer.findFirst({
-        where: {
-          storeId,
-          phoneNumber: dto.phoneNumber,
-          deletedAt: null,
-        },
-      });
-      if (existing) {
-        throw new ConflictException('Ushbu telefon raqamli mijoz doʻkonda allaqachon mavjud');
-      }
-    }
-
     return this.prisma.$transaction(async (tx) => {
+      if (dto.phoneNumber) {
+        // Do'kon egasining telefon raqami mijoz sifatida qo'shilishini bloklaymiz
+        const store = await tx.store.findUnique({
+          where: { id: storeId },
+          include: { user: true },
+        });
+        if (store?.user?.phoneNumber && store.user.phoneNumber === dto.phoneNumber) {
+          throw new BadRequestException('Doʻkon egasining telefon raqamini mijoz sifatida qoʻshib boʻlmaydi');
+        }
+
+        const existing = await tx.customer.findFirst({
+          where: {
+            storeId,
+            phoneNumber: dto.phoneNumber,
+            deletedAt: null,
+          },
+        });
+        if (existing) {
+          throw new ConflictException('Ushbu telefon raqamli mijoz doʻkonda allaqachon mavjud');
+        }
+      }
+
       const maxCustomer = await tx.customer.findFirst({
         where: { storeId },
         orderBy: { serialId: 'desc' },
@@ -247,7 +247,10 @@ export class CustomersService {
       // 3. Mijozning o'zini soft delete qilish
       await tx.customer.update({
         where: { id },
-        data: { deletedAt: now },
+        data: {
+          deletedAt: now,
+          lastActivityAt: now,
+        },
       });
     });
 

@@ -54,8 +54,8 @@ export const Register: React.FC = () => {
         storeName,
         telegramId: telegramRegData?.telegramId || undefined,
       });
-      const { token, accessToken, refreshToken, user, store } = response.data;
-      login(accessToken || token, user, store, refreshToken);
+      const { user, store } = response.data;
+      login(user, store);
       navigate('/');
     } catch (err: any) {
       setError(

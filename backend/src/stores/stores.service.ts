@@ -57,7 +57,7 @@ export class StoresService {
     });
     const todayPaymentsSum = Number(todayPayments._sum.amount || 0);
 
-    // 4. Muddati o‘tgan umumiy qarzlar summasi
+    // 4. Muddati o’tgan umumiy qarzlar summasi
     const overdueDebtsList = await this.prisma.debt.findMany({
       where: {
         customer: { storeId, deletedAt: null },
@@ -70,15 +70,18 @@ export class StoresService {
       },
     });
     let overdueDebtsSum = 0;
+    const processedCustomers = new Set<string>();
     for (const d of overdueDebtsList) {
-      const netDebt = customerDebtsMap.get(d.customerId) || 0;
-      if (netDebt > 0) {
-        const debtAmount = d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
-        overdueDebtsSum += Math.min(debtAmount, netDebt);
+      if (!processedCustomers.has(d.customerId)) {
+        const netDebt = customerDebtsMap.get(d.customerId) || 0;
+        if (netDebt > 0) {
+          overdueDebtsSum += netDebt;
+          processedCustomers.add(d.customerId);
+        }
       }
     }
 
-    // 5. Bugun to‘lanishi kerak bo‘lgan qarzlar summasi
+    // 5. Bugun to’lanishi kerak bo’lgan qarzlar summasi
     const todayDebtsList = await this.prisma.debt.findMany({
       where: {
         customer: { storeId, deletedAt: null },
@@ -91,11 +94,14 @@ export class StoresService {
       },
     });
     let todayDebtsSum = 0;
+    const processedCustomersToday = new Set<string>();
     for (const d of todayDebtsList) {
-      const netDebt = customerDebtsMap.get(d.customerId) || 0;
-      if (netDebt > 0) {
-        const debtAmount = d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
-        todayDebtsSum += Math.min(debtAmount, netDebt);
+      if (!processedCustomersToday.has(d.customerId)) {
+        const netDebt = customerDebtsMap.get(d.customerId) || 0;
+        if (netDebt > 0) {
+          todayDebtsSum += netDebt;
+          processedCustomersToday.add(d.customerId);
+        }
       }
     }
 

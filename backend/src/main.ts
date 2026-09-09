@@ -19,8 +19,14 @@ async function bootstrap() {
     }),
   );
 
-  // CORS yoqish (React bilan bog'lanish uchun)
-  app.enableCors();
+  // CORS konfiguratsiyasi - httpOnly cookies uchun
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  app.enableCors({
+    origin: frontendUrl,
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  });
 
   // Global prefix '/api', root '/' ni exclude qilamiz
   app.setGlobalPrefix('api', {
