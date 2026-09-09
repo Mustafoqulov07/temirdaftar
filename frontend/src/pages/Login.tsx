@@ -56,8 +56,9 @@ export const Login: React.FC = () => {
 
       const { token } = response.data;
 
-      // Token memory-da saqlash (localStorage-ga emas)
-      // API interceptor token-ni header-ga qo'shish uchun
+      // Token localStorage-ga saqlanadi
+      localStorage.setItem('token', token);
+
       // User va store ma'lumotlarini fetch qilish
       const profileRes = await api.get('/auth/profile', {
         headers: {
@@ -66,7 +67,6 @@ export const Login: React.FC = () => {
       });
       const { user, store } = profileRes.data;
 
-      // Token state-da saqlash (memory-da, localStorage-da emas)
       login(token, user, store);
       if (user.role === 'SUPER_ADMIN') {
         navigate('/admin', { replace: true });

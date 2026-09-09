@@ -44,9 +44,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadFromLocalStorage = () => {
       try {
-        // Token memory-da saqlanadi, localStorage-da saqlanmaydi
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
+          setToken(storedToken);
+          setApiToken(storedToken);
+        }
       } catch (e) {
         console.error('Storage maʼlumotlarni yuklashda xatolik:', e);
+        localStorage.removeItem('token');
       } finally {
         setLoading(false);
       }

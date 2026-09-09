@@ -57,7 +57,9 @@ export const Register: React.FC = () => {
 
       const { token } = response.data;
 
-      // Token memory-da saqlash (localStorage-ga emas)
+      // Token localStorage-ga saqlanadi
+      localStorage.setItem('token', token);
+
       // User va store ma'lumotlarini fetch qilish
       const profileRes = await api.get('/auth/profile', {
         headers: {
@@ -66,7 +68,7 @@ export const Register: React.FC = () => {
       });
       const { user, store } = profileRes.data;
 
-      // Token state-da saqlash (memory-da, localStorage-da emas)
+      // Token state-da saqlanadi, user/store faqat memory-da
       login(token, user, store);
       navigate('/');
     } catch (err: any) {
