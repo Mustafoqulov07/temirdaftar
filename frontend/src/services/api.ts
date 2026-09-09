@@ -33,15 +33,13 @@ api.interceptors.response.use(
 
       try {
         const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-        const response = await axios.post(
+        await axios.post(
           `${baseURL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
 
-        // Response-dan yangi token-ni saqlash (cookies-dan refreshToken avtomatik)
-        // Token-ni localStorage-ga saqlash kerak emas, faqat cookies-da saqlash kerak
-
+        // Token cookies-da yangilandi, response-da token yo'q
         // Original so'rovni retry qilish
         return api(originalRequest);
       } catch (refreshErr) {
