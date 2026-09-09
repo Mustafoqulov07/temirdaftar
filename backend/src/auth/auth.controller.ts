@@ -40,6 +40,8 @@ export class AuthController {
     return res.json({
       token: result.accessToken,
       accessToken: result.accessToken,
+      user: result.user,
+      store: result.store,
     });
   }
 
@@ -52,6 +54,8 @@ export class AuthController {
     return res.json({
       token: result.accessToken,
       accessToken: result.accessToken,
+      user: result.user,
+      store: result.store,
     });
   }
 
@@ -66,6 +70,8 @@ export class AuthController {
     return res.json({
       token: result.accessToken,
       accessToken: result.accessToken,
+      user: result.user,
+      store: result.store,
     });
   }
 
@@ -77,6 +83,8 @@ export class AuthController {
     return res.json({
       token: result.accessToken,
       accessToken: result.accessToken,
+      user: result.user,
+      store: result.store,
     });
   }
 
