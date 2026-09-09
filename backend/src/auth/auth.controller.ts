@@ -13,16 +13,20 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
-    res.cookie('accessToken', accessToken, {
+    const cookieOptions = {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: 'none' as const,
+      maxAge: 60 * 60 * 1000,
+      path: '/',
+    };
+
+    res.cookie('accessToken', accessToken, {
+      ...cookieOptions,
       maxAge: 60 * 60 * 1000, // 1 hour
     });
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      ...cookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
   }
