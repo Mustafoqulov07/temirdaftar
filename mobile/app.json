@@ -13,7 +13,7 @@
     "android": {
       "package": "com.temirdaftar.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#4F46E5",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -29,7 +29,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F5F3FF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -38,6 +38,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "87178f3a-056a-4b81-a70f-1aefb98a74cf"
+      }
+    },
+    "owner": "mustafoqulov07s-team"
   }
 }
