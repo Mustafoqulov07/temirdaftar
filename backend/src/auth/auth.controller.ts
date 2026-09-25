@@ -39,6 +39,8 @@ export class AuthController {
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
     return res.json({
       token: result.accessToken,
+      user: result.user,
+      store: result.store,
       message: 'Registration successful'
     });
   }
@@ -51,6 +53,8 @@ export class AuthController {
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
     return res.json({
       token: result.accessToken,
+      user: result.user,
+      store: result.store,
       message: 'Login successful'
     });
   }
@@ -65,6 +69,8 @@ export class AuthController {
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
     return res.json({
       token: result.accessToken,
+      user: result.user,
+      store: result.store,
       message: 'Login successful'
     });
   }
