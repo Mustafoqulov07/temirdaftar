@@ -62,6 +62,8 @@ export class AuthService {
 
     const tokens = this.generateTokens(user, store.id);
 
+    // Web frontend login/register javobidan user va store'ni kutadi.
+    // Bu nozik ma'lumot emas (faqat id, ism, rol) — cookie/lokatsiyasiz ham xavfsiz.
     return {
       ...tokens,
       user: {

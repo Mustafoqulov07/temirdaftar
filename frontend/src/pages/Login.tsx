@@ -54,13 +54,31 @@ export const Login: React.FC = () => {
         password,
       });
 
-      const { token, user, store } = response.data;
+      const { token } = response.data;
+      if (!token) {
+        setError('Tizimga kirishda xatolik yuz berdi. Iltimos, qayta urining.');
+        setLoading(false);
+        return;
+      }
 
       // setApiToken localStorage'ni ham yangilaydi
       setApiToken(token);
+
+      // Backend ba'zi versiyalarida javobda user/store yo'q —
+      // bo'lmasa /auth/profile orqali olib kelamiz
+      let user = response.data.user;
+      let store = response.data.store;
+      if (!user) {
+        const profileRes = await api.get('/auth/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        user = profileRes.data.user;
+        store = profileRes.data.store;
+      }
+
       login(token, user, store);
 
-      if (user.role === 'SUPER_ADMIN') {
+      if (user?.role === 'SUPER_ADMIN') {
         navigate('/admin', { replace: true });
       } else {
         navigate('/', { replace: true });
