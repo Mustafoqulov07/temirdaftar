@@ -71,14 +71,28 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refreshTokens(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = (req.cookies as any)?.refreshToken;
+  async refreshTokens(
+    @Req() req: Request,
+    @Body('refreshToken') bodyRefreshToken?: string,
+    @Res() res?: Response,
+  ) {
+    // Web client cookie orqali, mobil client esa body orqali yuboradi
+    const refreshToken = (req.cookies as any)?.refreshToken || bodyRefreshToken;
     const result = await this.authService.refreshTokens(refreshToken);
-    this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.json({
+    if (res) {
+      this.setAuthCookies(res, result.accessToken, result.refreshToken);
+      return res.json({
+        token: result.accessToken,
+        refreshToken: result.refreshToken,
+        message: 'Token refreshed',
+      });
+    }
+    // Res Decorator ishlatilmaganida Nest javobni o'zi qaytaradi
+    return {
       token: result.accessToken,
-      message: 'Token refreshed'
-    });
+      refreshToken: result.refreshToken,
+      message: 'Token refreshed',
+    };
   }
 
   @Get('profile')
