@@ -16,7 +16,7 @@ interface Customer {
   serialId: number;
   fullName: string;
   phoneNumber: string | null;
-  totalDebt: string;
+  totalDebt: number;
   lastActivityAt: string;
 }
 
@@ -39,15 +39,18 @@ export const Customers: React.FC = () => {
     newCustomerPhone.length === 13 && user?.phoneNumber && newCustomerPhone === user.phoneNumber
   );
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = async (signal?: AbortSignal) => {
     setLoading(true);
     setError('');
     try {
       const response = await api.get('/customers', {
         params: search ? { search } : {},
+        signal,
       });
       setCustomers(response.data);
     } catch (err: any) {
+      // Bekor qilingan so'rovlar uchun xatolik ko'rsatmaymiz
+      if (err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError') return;
       setError('Mijozlarni yuklashda xatolik yuz berdi.');
     } finally {
       setLoading(false);
@@ -78,12 +81,17 @@ export const Customers: React.FC = () => {
   };
 
   useEffect(() => {
-    // Kichik debounce/delay qidiruv uchun
+    // Kichik debounce/delay qidiruv uchun + eski so'rovni bekor qilish
+    // (sekin javob yangi natijani bosib olishining oldini oladi)
+    const controller = new AbortController();
     const delayDebounceFn = setTimeout(() => {
-      fetchCustomers();
+      fetchCustomers(controller.signal);
     }, 300);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      clearTimeout(delayDebounceFn);
+      controller.abort();
+    };
   }, [search]);
 
   const handleAddCustomerSubmit = async (e: React.FormEvent) => {
@@ -122,8 +130,7 @@ export const Customers: React.FC = () => {
     }
   };
 
-  const formatMoney = (amountStr: string) => {
-    const amount = Number(amountStr);
+  const formatMoney = (amount: number) => {
     return new Intl.NumberFormat('uz-UZ').format(amount) + " so'm";
   };
 

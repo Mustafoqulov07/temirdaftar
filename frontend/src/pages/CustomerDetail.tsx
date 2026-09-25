@@ -244,6 +244,11 @@ export const CustomerDetail: React.FC = () => {
   const handleResetDebtToZero = async () => {
     try {
       const debtAmount = Math.round(Number(customer?.totalDebt || 0) * 100) / 100;
+      if (debtAmount <= 0) {
+        showToast("Nollashtirish uchun qarz mavjud emas", 'error');
+        setResetConfirmOpen(false);
+        return;
+      }
       await api.post('/payments', {
         customerId: id,
         amount: debtAmount,

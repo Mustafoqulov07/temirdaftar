@@ -42,18 +42,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadFromLocalStorage = () => {
+    let cancelled = false;
+
+    const finishLoading = () => {
+      if (!cancelled) setLoading(false);
+    };
+
+    // Saqlangan token bo'lsa — user/store ma'lumotlarini /auth/profile orqali
+    // qayta yuklaymiz. Aks holda sahifa refresh qilinganda user = null bo'lib qoladi
+    // (masalan SUPER_ADMIN admin sahifasiga qayta kira olmasdi).
+    const restoreSession = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (!storedToken) {
+        finishLoading();
+        return;
+      }
+
+      setToken(storedToken);
+      setApiToken(storedToken);
+
       try {
-        const storedToken = localStorage.getItem('token');
-        if (storedToken) {
-          setToken(storedToken);
-          setApiToken(storedToken);
+        const profileRes = await api.get('/auth/profile');
+        if (cancelled) return;
+        const { user: profileUser, store: profileStore } = profileRes.data;
+        setUser(profileUser);
+        setStore(profileStore);
+      } catch (err: any) {
+        // 401 interceptor tomonidan refresh/redirect qilinadi — bu yerda faqat
+        // boshqa xatolarni loglaymiz va sessiyani tozalaymiz
+        console.error('Sessiyani tiklashda xatolik:', err);
+        if (cancelled) return;
+        if (err?.response?.status !== 401) {
+          setApiToken(null);
+          setToken(null);
         }
-      } catch (e) {
-        console.error('Storage maʼlumotlarni yuklashda xatolik:', e);
-        localStorage.removeItem('token');
       } finally {
-        setLoading(false);
+        finishLoading();
       }
     };
 
@@ -63,51 +87,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       tg.expand();
 
       api.post('/auth/telegram', { initData: tg.initData })
-        .then((res) => {
+        .then(async (res) => {
+          if (cancelled) return;
           if (res.data.isNew) {
             setTelegramRegData({
               telegramId: res.data.telegramId,
               fullName: res.data.fullName,
             });
-            setLoading(false);
+            finishLoading();
           } else {
             const { token: newToken } = res.data;
-            // Token-ni dastlabki saqlash
             if (newToken) {
               setApiToken(newToken);
+              setToken(newToken);
             }
 
             // User va store ma'lumotlarini fetch qilish
-            api.get('/auth/profile', {
-              headers: {
-                Authorization: `Bearer ${newToken}`
-              }
-            })
-              .then((profileRes) => {
-                const { user, store } = profileRes.data;
-                login(newToken, user, store);
-                setLoading(false);
-              })
-              .catch((err) => {
-                console.error('Profile fetch failed:', err);
-                setLoading(false);
-              });
+            const profileRes = await api.get('/auth/profile');
+            if (cancelled) return;
+            const { user: profileUser, store: profileStore } = profileRes.data;
+            setUser(profileUser);
+            setStore(profileStore);
+            finishLoading();
           }
         })
         .catch((err) => {
           console.error('Telegram authentication failed:', err);
-          loadFromLocalStorage();
+          restoreSession();
         });
     } else {
-      loadFromLocalStorage();
+      restoreSession();
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = (newToken: string | null, newUser: User, newStore: Store | null) => {
-    // Token memory-da saqlash (API interceptor-da ishlatiladi)
+    // Token memory + localStorage-da saqlanadi (API interceptor-da ishlatiladi)
     if (newToken) {
       setApiToken(newToken);
-      localStorage.setItem('token', newToken);
     }
     setToken(newToken);
     setUser(newUser);
@@ -115,12 +135,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    // Backend sessiyasini (refresh cookie) ham yopamiz — hatto xato bo'lsa ham davom etamiz
+    api.post('/auth/logout').catch(() => {});
     setApiToken(null);
     setToken(null);
     setUser(null);
     setStore(null);
     setTelegramRegData(null);
-    localStorage.removeItem('token');
   };
 
   return (

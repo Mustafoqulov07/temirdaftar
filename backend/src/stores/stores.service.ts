@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { debtTotalOf, netDebtOf, allocatePaymentsFIFO, round2 } from '../common/debt-math';
 
 @Injectable()
 export class StoresService {
   constructor(private prisma: PrismaService) {}
 
   async getDashboardData(storeId: string) {
-    const startOfToday = new Date();
+    const now = new Date();
+    const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
 
-    const endOfToday = new Date();
+    const endOfToday = new Date(now);
     endOfToday.setHours(23, 59, 59, 999);
 
     // 1. Jami faol mijozlar soni
@@ -17,15 +19,14 @@ export class StoresService {
       where: { storeId, deletedAt: null },
     });
 
-    // 2. Jami qarzdorlik summasi (faol mijozlardan) va 6. Top-5 qarzdor mijozlar
+    // 2. Faol mijozlar va ularning qarz/to'lov tarixi
     const activeCustomers = await this.prisma.customer.findMany({
       where: { storeId, deletedAt: null },
       include: {
         debts: {
           where: { deletedAt: null },
-          include: {
-            items: true,
-          },
+          include: { items: true },
+          orderBy: { createdAt: 'asc' },
         },
         payments: {
           where: { deletedAt: null },
@@ -34,19 +35,20 @@ export class StoresService {
     });
 
     let totalDebtSum = 0;
-    const customerDebtsMap = new Map<string, number>();
+    // customerId -> FIFO taqsimlangan qarzlar (to'langan qismlari bilan)
+    const customerAllocations = new Map<string, Map<string, { total: number; paidPortion: number; isPaid: boolean }>>();
+    // customerId -> sof qarz (manfiy bo'lishi mumkin — ortiqcha to'lov)
+    const customerNetDebtMap = new Map<string, number>();
 
     for (const c of activeCustomers) {
-      const totalDebtAmount = c.debts.reduce((sum, d) => {
-        return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
-      }, 0);
-      const totalPaymentAmount = c.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-      const netDebt = Math.max(0, totalDebtAmount - totalPaymentAmount);
+      const netDebt = netDebtOf(c.debts, c.payments);
+      customerNetDebtMap.set(c.id, netDebt);
       totalDebtSum += netDebt;
-      customerDebtsMap.set(c.id, netDebt);
+      customerAllocations.set(c.id, allocatePaymentsFIFO(c.debts, c.payments.reduce((s, p) => s + Number(p.amount), 0)));
     }
+    totalDebtSum = round2(totalDebtSum);
 
-    // 3. Bugun tushgan to‘lovlar summasi
+    // 3. Bugun tushgan to'lovlar summasi
     const todayPayments = await this.prisma.payment.aggregate({
       _sum: { amount: true },
       where: {
@@ -57,61 +59,42 @@ export class StoresService {
     });
     const todayPaymentsSum = Number(todayPayments._sum.amount || 0);
 
-    // 4. Muddati o’tgan umumiy qarzlar summasi
-    const overdueDebtsList = await this.prisma.debt.findMany({
-      where: {
-        customer: { storeId, deletedAt: null },
-        dueDate: { lt: startOfToday },
-        isPaid: false,
-        deletedAt: null,
-      },
-      include: {
-        items: true,
-      },
-    });
-    let overdueDebtsSum = 0;
-    const processedCustomers = new Set<string>();
-    for (const d of overdueDebtsList) {
-      if (!processedCustomers.has(d.customerId)) {
-        const netDebt = customerDebtsMap.get(d.customerId) || 0;
-        if (netDebt > 0) {
-          overdueDebtsSum += netDebt;
-          processedCustomers.add(d.customerId);
-        }
-      }
-    }
+    /**
+     * Berilgan sana oralig'idagi muddati kelgan qarzlar uchun TO'LANMAGAN qoldiqni hisoblaydi.
+     * Muhim: FIFO taqsimotdan foydalanamiz — ya'ni faqat o'sha qarzning hali to'lanmagan qismi qo'shiladi.
+     */
+    const sumUnpaidForDueRange = async (from: Date, to: Date): Promise<number> => {
+      const dueDebts = await this.prisma.debt.findMany({
+        where: {
+          customer: { storeId, deletedAt: null },
+          dueDate: { gte: from, lte: to },
+          deletedAt: null,
+        },
+        include: { items: true },
+      });
 
-    // 5. Bugun to’lanishi kerak bo’lgan qarzlar summasi
-    const todayDebtsList = await this.prisma.debt.findMany({
-      where: {
-        customer: { storeId, deletedAt: null },
-        dueDate: { gte: startOfToday, lte: endOfToday },
-        isPaid: false,
-        deletedAt: null,
-      },
-      include: {
-        items: true,
-      },
-    });
-    let todayDebtsSum = 0;
-    const processedCustomersToday = new Set<string>();
-    for (const d of todayDebtsList) {
-      if (!processedCustomersToday.has(d.customerId)) {
-        const netDebt = customerDebtsMap.get(d.customerId) || 0;
-        if (netDebt > 0) {
-          todayDebtsSum += netDebt;
-          processedCustomersToday.add(d.customerId);
-        }
+      let sum = 0;
+      for (const d of dueDebts) {
+        const allocation = customerAllocations.get(d.customerId)?.get(d.id);
+        const unpaid = allocation ? round2(allocation.total - allocation.paidPortion) : debtTotalOf(d.items);
+        if (unpaid > 0) sum += unpaid;
       }
-    }
+      return round2(sum);
+    };
 
-    // 6. Eng ko‘p qarzdor mijozlar (Top-5)
+    // 4. Muddati o'tgan qarzlar (to'lanmagan qismlari)
+    const overdueDebtsSum = await sumUnpaidForDueRange(new Date(0), new Date(startOfToday.getTime() - 1));
+
+    // 5. Bugun to'lanishi kerak bo'lgan qarzlar (to'lanmagan qismlari)
+    const todayDebtsSum = await sumUnpaidForDueRange(startOfToday, endOfToday);
+
+    // 6. Eng ko'p qarzdor mijozlar (Top-5)
     const topCustomers = activeCustomers
       .map((c) => ({
         id: c.id,
         fullName: c.fullName,
         phoneNumber: c.phoneNumber,
-        totalDebt: customerDebtsMap.get(c.id) || 0,
+        totalDebt: customerNetDebtMap.get(c.id) || 0,
       }))
       .sort((a, b) => b.totalDebt - a.totalDebt)
       .slice(0, 5);
@@ -144,7 +127,7 @@ export class StoresService {
 
     const activities = [
       ...lastDebts.map((d) => {
-        const amount = d.items.reduce((sum, i) => sum + Number(i.quantity) * Number(i.pricePerUnit), 0);
+        const amount = debtTotalOf(d.items);
         return {
           id: d.id,
           type: 'DEBT',

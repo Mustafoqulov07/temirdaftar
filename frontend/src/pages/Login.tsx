@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import api from '../services/api';
+import api, { setApiToken } from '../services/api';
 
 export const Login: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('+998');
@@ -12,8 +12,8 @@ export const Login: React.FC = () => {
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
   const [blockedModalOpen, setBlockedModalOpen] = useState(false);
   const [supportInfo, setSupportInfo] = useState<{ phone: string; telegram: string }>({
-    phone: '+998937145515',
-    telegram: 'https://t.me/qarzdor_admin',
+    phone: '',
+    telegram: '',
   });
   
   const { login } = useAuth();
@@ -54,20 +54,12 @@ export const Login: React.FC = () => {
         password,
       });
 
-      const { token } = response.data;
+      const { token, user, store } = response.data;
 
-      // Token localStorage-ga saqlanadi
-      localStorage.setItem('token', token);
-
-      // User va store ma'lumotlarini fetch qilish
-      const profileRes = await api.get('/auth/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      const { user, store } = profileRes.data;
-
+      // setApiToken localStorage'ni ham yangilaydi
+      setApiToken(token);
       login(token, user, store);
+
       if (user.role === 'SUPER_ADMIN') {
         navigate('/admin', { replace: true });
       } else {
@@ -76,8 +68,8 @@ export const Login: React.FC = () => {
     } catch (err: any) {
       if (err.response?.data?.isBlocked || err.response?.data?.message?.includes('bloklangan')) {
         setSupportInfo({
-          phone: err.response?.data?.supportPhone || '+998937145515',
-          telegram: err.response?.data?.supportTelegram || 'https://t.me/qarzdor_admin',
+          phone: err.response?.data?.supportPhone || '',
+          telegram: err.response?.data?.supportTelegram || '',
         });
         setBlockedModalOpen(true);
       }
@@ -389,25 +381,29 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="space-y-2.5 pt-2">
-              <a
-                href={
-                  supportInfo.telegram.startsWith('http')
-                    ? supportInfo.telegram
-                    : `https://t.me/${supportInfo.telegram.replace('@', '')}`
-                }
-                target="_blank"
-                rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-sm shadow-md shadow-sky-500/20 transition-all duration-200"
-              >
-                <span>💬 Telegram orqali yozish</span>
-              </a>
+              {supportInfo.telegram && (
+                <a
+                  href={
+                    supportInfo.telegram.startsWith('http')
+                      ? supportInfo.telegram
+                      : `https://t.me/${supportInfo.telegram.replace('@', '')}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-sm shadow-md shadow-sky-500/20 transition-all duration-200"
+                >
+                  <span>💬 Telegram orqali yozish</span>
+                </a>
+              )}
 
-              <a
-                href={`tel:${supportInfo.phone}`}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all duration-200"
-              >
-                <span>📞 Qoʻngʻiroq qilish ({supportInfo.phone})</span>
-              </a>
+              {supportInfo.phone && (
+                <a
+                  href={`tel:${supportInfo.phone}`}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all duration-200"
+                >
+                  <span>📞 Qoʻngʻiroq qilish ({supportInfo.phone})</span>
+                </a>
+              )}
 
               <button
                 type="button"

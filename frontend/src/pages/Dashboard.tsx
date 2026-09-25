@@ -56,7 +56,7 @@ export const Dashboard: React.FC = () => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   // Form states
-  const [allCustomersList, setAllCustomersList] = useState<{ id: string; fullName: string; totalDebt: string }[]>([]);
+  const [allCustomersList, setAllCustomersList] = useState<{ id: string; fullName: string; totalDebt: number }[]>([]);
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerPhone, setNewCustomerPhone] = useState('+998');
   const [customerModalError, setCustomerModalError] = useState('');

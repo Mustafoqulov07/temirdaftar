@@ -10,6 +10,12 @@ let currentToken: string | null = null;
 // Token state-dan set qilish uchun (AuthContext-dan chaqiriladi)
 export const setApiToken = (token: string | null) => {
   currentToken = token;
+  // Token localStorage bilan sinxron saqlanadi — sahifa refresh bo'lganda ham ishlaydi
+  if (token) {
+    localStorage.setItem('token', token);
+  } else {
+    localStorage.removeItem('token');
+  }
 };
 
 // So'rov yuborishda token header-ga qo'shish
@@ -50,12 +56,13 @@ api.interceptors.response.use(
         // Response-dan yangi token
         const { token } = response.data;
         if (token) {
+          // setApiToken localStorage'ni ham yangilaydi
           setApiToken(token);
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
         }
 
-        // Original so'rovni retry qilish
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return api(originalRequest);
+        throw new Error('Refresh javobida token yo‘q');
       } catch (refreshErr) {
         console.warn('Token refresh failed:', refreshErr);
         setApiToken(null);

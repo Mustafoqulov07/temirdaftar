@@ -79,15 +79,16 @@ export class AuthService {
 
   private getBlockedException() {
     const supportPhone = (
+      process.env.SUPPORT_PHONE ||
       process.env.SUPER_ADMIN_PHONE ||
       process.env.ADMIN_PHONE ||
-      '+998937145514'
+      ''
     ).trim();
 
     const supportTelegram = (
       process.env.ADMIN_TELEGRAM_USERNAME ||
       process.env.SUPPORT_TELEGRAM ||
-      'https://t.me/Mustafoqulovvvvv'
+      ''
     ).trim();
 
     return new UnauthorizedException({
@@ -164,7 +165,7 @@ export class AuthService {
   }
 
   verifyTelegramInitData(initDataString: string): { id: string; fullName: string } | null {
-    const rawBotToken = process.env.TELEGRAM_BOT_TOKEN || process.env['TELEGRAM_BOT_TOKEN '];
+    const rawBotToken = process.env.TELEGRAM_BOT_TOKEN;
     if (!rawBotToken) {
       // Agar token o'rnatilmagan bo'lsa, xatolik beramiz yoki log qilamiz
       console.warn('TELEGRAM_BOT_TOKEN .env faylida sozlanmagan');
@@ -415,12 +416,15 @@ export class AuthService {
       include: { store: true },
     });
 
-    const token = this.jwtService.sign({
-      sub: updatedUser.id,
-      storeId: updatedUser.store ? updatedUser.store.id : null,
-      phoneNumber: updatedUser.phoneNumber,
-      role: updatedUser.role || 'USER',
-    });
+    const token = this.jwtService.sign(
+      {
+        sub: updatedUser.id,
+        storeId: updatedUser.store ? updatedUser.store.id : null,
+        phoneNumber: updatedUser.phoneNumber,
+        role: updatedUser.role || 'USER',
+      },
+      { expiresIn: '1h' },
+    );
 
     return {
       token,

@@ -9,7 +9,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   private userStates = new Map<string, string>();
 
   constructor(private prisma: PrismaService) {
-    const token = process.env.TELEGRAM_BOT_TOKEN || process.env['TELEGRAM_BOT_TOKEN '];
+    const token = process.env.TELEGRAM_BOT_TOKEN;
     if (!token) {
       console.warn('⚠️ TELEGRAM_BOT_TOKEN .env faylida koʻrsatilmagan. Telegram bot ishga tushmaydi.');
       return;

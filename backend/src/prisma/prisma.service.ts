@@ -64,18 +64,16 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     try {
       let targetPhone = (
         process.env.SUPER_ADMIN_PHONE ||
-        process.env['SUPER_ADMIN_PHONE '] ||
         process.env.ADMIN_PHONE ||
-        '+998937145515'
+        ''
       ).trim();
 
-      if (!targetPhone.startsWith('+')) {
+      if (targetPhone && !targetPhone.startsWith('+')) {
         targetPhone = '+' + targetPhone;
       }
 
       const targetPassword = (
         process.env.SUPER_ADMIN_PASSWORD ||
-        process.env['SUPER_ADMIN_PASSWORD '] ||
         process.env.ADMIN_PASSWORD
       )?.trim();
 
@@ -83,16 +81,27 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         ? process.env.ADMIN_TELEGRAM_ID.trim()
         : null;
 
-      console.log(`[SuperAdmin Init] Syncing single Super Admin. Target phone: ${targetPhone}`);
+      console.log(`[SuperAdmin Init] Syncing single Super Admin. Target phone: ${targetPhone || '(sozlanmagan)'}`);
 
       // 1. Find if there is any user currently having role = 'SUPER_ADMIN'
       const existingSuperAdmin = await this.user.findFirst({
         where: { role: 'SUPER_ADMIN' },
       });
 
+      // Xavfsizlik: SUPER_ADMIN_PHONE sozlanmagan va bazada admin mavjud bo'lmasa,
+      // standart parol bilan admin YARATMAYMIZ (default parol xavfsizlik teshigi).
+      if (!targetPhone && !existingSuperAdmin) {
+        console.warn(
+          '[SuperAdmin Init] SUPER_ADMIN_PHONE sozlanmagan va bazada Super Admin mavjud emas. Admin yaratish o\'tkazib yuborildi. Iltimos, SUPER_ADMIN_PHONE va SUPER_ADMIN_PASSWORD env o\'zgaruvchilarini sozlang.',
+        );
+        return;
+      }
+
+      const effectivePhone = targetPhone || existingSuperAdmin!.phoneNumber;
+
       // 2. Find user with targetPhone
       const userWithTargetPhone = await this.user.findUnique({
-        where: { phoneNumber: targetPhone },
+        where: { phoneNumber: effectivePhone },
       });
 
       let designatedAdminId: string;
@@ -110,11 +119,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
           where: { id: userWithTargetPhone.id },
           data: updateData,
         });
-        console.log(`[SuperAdmin Init] User with phone ${targetPhone} verified as the sole SUPER_ADMIN.`);
+        console.log(`[SuperAdmin Init] User with phone ${effectivePhone} verified as the sole SUPER_ADMIN.`);
       } else if (existingSuperAdmin) {
         // Phone changed in environment variables! Update existing super admin to the new phone number
         designatedAdminId = existingSuperAdmin.id;
-        const updateData: any = { phoneNumber: targetPhone, isBlocked: false };
+        const updateData: any = { phoneNumber: effectivePhone, isBlocked: false };
         if (targetPassword) {
           updateData.passwordHash = await bcrypt.hash(targetPassword, 10);
         }
@@ -128,20 +137,19 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         console.log(`[SuperAdmin Init] Updated existing SUPER_ADMIN phone number from ${existingSuperAdmin.phoneNumber} to ${targetPhone}.`);
       } else {
         // No super admin exists and userWithTargetPhone does not exist -> Create fresh Super Admin
-        const defaultPassword = targetPassword || 'Admin123!';
-        const passwordHash = await bcrypt.hash(defaultPassword, 10);
         const newAdmin = await this.user.create({
           data: {
-            phoneNumber: targetPhone,
+            phoneNumber: effectivePhone,
             fullName: 'Super Admin',
             role: 'SUPER_ADMIN',
-            passwordHash,
+            // Bu yo'lga faqat SUPER_ADMIN_PASSWORD sozlanganda kiriladi (yuqorida tekshiriladi)
+            passwordHash: await bcrypt.hash(targetPassword!, 10),
             isBlocked: false,
             telegramId: adminTelegramId || undefined,
           },
         });
         designatedAdminId = newAdmin.id;
-        console.log(`[SuperAdmin Init] Created new dedicated SUPER_ADMIN user with phone ${targetPhone}.`);
+        console.log(`[SuperAdmin Init] Created new dedicated SUPER_ADMIN user with phone ${effectivePhone}.`);
       }
 
       // 3. Strictly enforce ONLY ONE Super Admin: Demote any other users who have role = 'SUPER_ADMIN'

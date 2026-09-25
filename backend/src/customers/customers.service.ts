@@ -2,51 +2,59 @@ import { Injectable, NotFoundException, ConflictException, BadRequestException }
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { netDebtOf, debtTotalOf, withSerializableRetry } from '../common/debt-math';
 
 @Injectable()
 export class CustomersService {
   constructor(private prisma: PrismaService) {}
 
   async create(storeId: string, dto: CreateCustomerDto) {
-    return this.prisma.$transaction(async (tx) => {
-      if (dto.phoneNumber) {
-        // Do'kon egasining telefon raqami mijoz sifatida qo'shilishini bloklaymiz
-        const store = await tx.store.findUnique({
-          where: { id: storeId },
-          include: { user: true },
-        });
-        if (store?.user?.phoneNumber && store.user.phoneNumber === dto.phoneNumber) {
-          throw new BadRequestException('Doʻkon egasining telefon raqamini mijoz sifatida qoʻshib boʻlmaydi');
-        }
+    // Serializable tranzaksiya: parallel so'rovlar bir xil serialId olmasligi uchun
+    // (max+1 usuli race condition'ga moyil — shuning uchun qat'iy izolyatsiya + retry)
+    return withSerializableRetry(() =>
+      this.prisma.$transaction(
+        async (tx) => {
+          if (dto.phoneNumber) {
+            // Do'kon egasining telefon raqami mijoz sifatida qo'shilishini bloklaymiz
+            const store = await tx.store.findUnique({
+              where: { id: storeId },
+              include: { user: true },
+            });
+            if (store?.user?.phoneNumber && store.user.phoneNumber === dto.phoneNumber) {
+              throw new BadRequestException('Doʻkon egasining telefon raqamini mijoz sifatida qoʻshib boʻlmaydi');
+            }
 
-        const existing = await tx.customer.findFirst({
-          where: {
-            storeId,
-            phoneNumber: dto.phoneNumber,
-            deletedAt: null,
-          },
-        });
-        if (existing) {
-          throw new ConflictException('Ushbu telefon raqamli mijoz doʻkonda allaqachon mavjud');
-        }
-      }
+            const existing = await tx.customer.findFirst({
+              where: {
+                storeId,
+                phoneNumber: dto.phoneNumber,
+                deletedAt: null,
+              },
+            });
+            if (existing) {
+              throw new ConflictException('Ushbu telefon raqamli mijoz doʻkonda allaqachon mavjud');
+            }
+          }
 
-      const maxCustomer = await tx.customer.findFirst({
-        where: { storeId },
-        orderBy: { serialId: 'desc' },
-        select: { serialId: true },
-      });
-      const nextSerialId = (maxCustomer?.serialId || 0) + 1;
+          const maxCustomer = await tx.customer.findFirst({
+            where: { storeId },
+            orderBy: { serialId: 'desc' },
+            select: { serialId: true },
+          });
+          const nextSerialId = (maxCustomer?.serialId || 0) + 1;
 
-      return tx.customer.create({
-        data: {
-          fullName: dto.fullName,
-          phoneNumber: dto.phoneNumber || null,
-          storeId,
-          serialId: nextSerialId,
+          return tx.customer.create({
+            data: {
+              fullName: dto.fullName,
+              phoneNumber: dto.phoneNumber || null,
+              storeId,
+              serialId: nextSerialId,
+            },
+          });
         },
-      });
-    });
+        { isolationLevel: 'Serializable' },
+      ),
+    );
   }
 
   async findAll(storeId: string, search?: string) {
@@ -71,21 +79,16 @@ export class CustomersService {
       },
     });
 
-    const mapped = customers.map((c) => {
-      const totalDebtAmount = c.debts.reduce((sum, d) => {
-        return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
-      }, 0);
-      const totalPaymentAmount = c.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-      return {
-        id: c.id,
-        serialId: c.serialId,
-        fullName: c.fullName,
-        phoneNumber: c.phoneNumber,
-        lastActivityAt: c.lastActivityAt,
-        createdAt: c.createdAt,
-        totalDebt: totalDebtAmount - totalPaymentAmount,
-      };
-    });
+    const mapped = customers.map((c) => ({
+      id: c.id,
+      serialId: c.serialId,
+      fullName: c.fullName,
+      phoneNumber: c.phoneNumber,
+      lastActivityAt: c.lastActivityAt,
+      createdAt: c.createdAt,
+      // Manfiy qiymat = ortiqcha to'lov (oldindan to'langan pul) — frontendda ko'rsatiladi
+      totalDebt: netDebtOf(c.debts, c.payments),
+    }));
 
     if (search) {
       const s = search.toLowerCase().trim();
@@ -128,16 +131,14 @@ export class CustomersService {
       orderBy: { paymentDate: 'desc' },
     });
 
-    // Jami qarz va to'lov hisobi
-    const totalDebtAmount = debts.reduce((sum, d) => {
-      return sum + d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
-    }, 0);
+    // Jami qarz va to'lov hisobi (umumiy helper orqali)
+    const totalDebtAmount = debts.reduce((sum, d) => sum + debtTotalOf(d.items), 0);
     const totalPaymentAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
 
     // Umumiy operatsiyalar logini shakllantiramiz
     const history = [
       ...debts.map((d) => {
-        const dAmount = d.items.reduce((itemSum, item) => itemSum + Number(item.quantity) * Number(item.pricePerUnit), 0);
+        const dAmount = debtTotalOf(d.items);
         return {
           id: d.id,
           type: 'DEBT',
