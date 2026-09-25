@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'https://temirdaftar-production.up.railway.app/api';
+const API_BASE_URL = 'https://temirdaftar-backend.onrender.com/api';
 
 interface RequestOptions {
   method?: string;
