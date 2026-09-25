@@ -158,8 +158,8 @@ export const Profile: React.FC = () => {
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 leading-tight">Sozlamalar</h1>
-        <p className="text-sm text-gray-500">Tizim va doʻkon sozlamalarini boshqaring</p>
+        <h1 className="text-2xl font-bold text-gray-900 leading-tight">Profil</h1>
+        <p className="text-sm text-gray-500">Shaxsiy va doʻkon maʼlumotlaringizni boshqaring</p>
       </div>
 
       {success && (

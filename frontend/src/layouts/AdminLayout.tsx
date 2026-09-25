@@ -25,9 +25,9 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const navItems = [
-    { name: 'Statistika & Trendlar', path: '/admin', icon: ChartBarSquareIcon },
-    { name: 'Doʻkonlar Markazi', path: '/admin/stores', icon: BuildingStorefrontIcon },
-    { name: 'Ommaviy Xabarnoma', path: '/admin/broadcast', icon: MegaphoneIcon },
+    { name: 'Dashboard', path: '/admin', icon: ChartBarSquareIcon },
+    { name: 'Doʻkonlar', path: '/admin/stores', icon: BuildingStorefrontIcon },
+    { name: 'Xabarnoma', path: '/admin/broadcast', icon: MegaphoneIcon },
   ];
 
   return (

@@ -26,7 +26,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const navItems = [
     { name: 'Dashboard', path: '/', icon: HomeIcon },
     { name: 'Mijozlar', path: '/customers', icon: UsersIcon },
-    { name: 'Sozlamalar', path: '/profile', icon: UserCircleIcon },
+    { name: 'Profil', path: '/profile', icon: UserCircleIcon },
   ];
 
   return (

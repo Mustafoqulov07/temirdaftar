@@ -3,6 +3,59 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api, { setApiToken } from '../services/api';
+import {
+  LockClosedIcon,
+  ShieldCheckIcon,
+  ChartBarIcon,
+  BellAlertIcon,
+} from '@heroicons/react/24/outline';
+
+/* ---------- Brend paneli (chap tomon, desktop) ---------- */
+const BrandPanel: React.FC<{ subtitle: string }> = ({ subtitle }) => (
+  <div className="hidden lg:flex flex-col justify-between w-[46%] xl:w-[52%] p-12 text-white relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-900">
+    {/* Dekorativ shakllar */}
+    <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+    <div className="absolute bottom-0 -left-32 w-[28rem] h-[28rem] bg-violet-400/20 rounded-full blur-3xl" />
+
+    <div className="relative">
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-2xl bg-white text-indigo-700 flex items-center justify-center text-2xl font-black shadow-lg">
+          T
+        </div>
+        <span className="text-xl font-bold tracking-tight">Temir Daftar</span>
+      </div>
+    </div>
+
+    <div className="relative space-y-8">
+      <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight">
+        Qarzlaringizni
+        <br />
+        <span className="text-indigo-200">bir joyda boshqaring</span>
+      </h2>
+      <p className="text-indigo-100/90 text-base leading-relaxed max-w-md">{subtitle}</p>
+
+      <ul className="space-y-4">
+        {[
+          { icon: ChartBarIcon, title: 'Real vaqtli statistika', desc: 'Qarzdorlik, toʻlovlar va muddati oʻtganlar bir ekranda' },
+          { icon: ShieldCheckIcon, title: 'Xavfsiz va ishonchli', desc: 'Maʼlumotlaringiz shifrlangan holda saqlanadi' },
+          { icon: BellAlertIcon, title: 'Telegram eslatmalar', desc: 'Toʻlov muddati yaqinlashganda bot xabar beradi' },
+        ].map((f) => (
+          <li key={f.title} className="flex items-start gap-4">
+            <div className="p-2.5 bg-white/10 rounded-xl backdrop-blur-sm border border-white/10">
+              <f.icon className="w-5 h-5 text-indigo-100" />
+            </div>
+            <div>
+              <p className="font-bold text-sm">{f.title}</p>
+              <p className="text-xs text-indigo-200/80 mt-0.5">{f.desc}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <p className="relative text-xs text-indigo-200/60">© {new Date().getFullYear()} Temir Daftar — Magazinlar uchun raqamli qarz daftari</p>
+  </div>
+);
 
 export const Login: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('+998');
@@ -15,7 +68,7 @@ export const Login: React.FC = () => {
     phone: '',
     telegram: '',
   });
-  
+
   const { login } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -92,7 +145,7 @@ export const Login: React.FC = () => {
         setBlockedModalOpen(true);
       }
       setError(
-        err.response?.data?.message || 
+        err.response?.data?.message ||
         'Tizimga kirishda xatolik yuz berdi. Iltimos, qayta urining.'
       );
     } finally {
@@ -170,72 +223,96 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-xl text-2xl font-black mb-2">
-            T
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">“Temir Daftar” tizimiga kirish</h1>
-          <p className="text-sm text-gray-500">Raqamli qarz daftaringizga kiring</p>
-        </div>
+    <div className="min-h-screen bg-slate-50 flex">
+      <BrandPanel subtitle="Doʻkoningizdagi barcha qarz va toʻlovlarni Temir Daftar bilan tartibli, aniq va xavfsiz yuriting. Har bir mijoz tarixi bir joyda." />
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
-            <p className="text-xs font-semibold text-red-700">{error}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Telefon raqam</label>
-            <input
-              type="text"
-              value={phoneNumber}
-              onChange={handlePhoneChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-lg transition-all duration-200"
-              placeholder="+998901234567"
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="block text-sm font-semibold text-gray-700">Parol</label>
-              <button
-                type="button"
-                onClick={() => setForgotModalOpen(true)}
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
-              >
-                Parolni unutdingizmi?
-              </button>
+      {/* O'ng tomon — forma */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
+        <div className="w-full max-w-md">
+          {/* Mobil logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-indigo-200">
+              T
             </div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-lg transition-all duration-200"
-              placeholder="••••••"
-            />
+            <span className="text-xl font-bold text-gray-900 tracking-tight">Temir Daftar</span>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-indigo-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg"
-          >
-            {loading ? 'Kirilmoqda...' : 'Kirish'}
-          </button>
-        </form>
+          <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/60 border border-gray-100 p-8 sm:p-10">
+            <div className="space-y-2 mb-8">
+              <h1 className="text-2xl font-black tracking-tight text-gray-900">Tizimga kirish</h1>
+              <p className="text-sm text-gray-500">
+                Hisobingizga kirish uchun telefon raqam va parolingizni kiriting
+              </p>
+            </div>
 
-        <div className="text-center pt-2">
-          <p className="text-sm text-gray-600">
-            Hisobingiz yoʻqmi?{' '}
-            <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">
-              Roʻyxatdan oʻtish
-            </Link>
-          </p>
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg mb-6 animate-slide-in">
+                <p className="text-xs font-semibold text-red-700">{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Telefon raqam</label>
+                <input
+                  type="text"
+                  value={phoneNumber}
+                  onChange={handlePhoneChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                  placeholder="+998901234567"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-sm font-semibold text-gray-700">Parol</label>
+                  <button
+                    type="button"
+                    onClick={() => setForgotModalOpen(true)}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                  >
+                    Parolni unutdingizmi?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                  placeholder="••••••"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base"
+              >
+                {loading ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    Kirilmoqda...
+                  </>
+                ) : (
+                  <>
+                    <LockClosedIcon className="w-5 h-5" />
+                    Kirish
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+              <p className="text-sm text-gray-600">
+                Hisobingiz yoʻqmi?{' '}
+                <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                  Roʻyxatdan oʻtish
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
