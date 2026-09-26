@@ -160,7 +160,7 @@ export const Customers: React.FC = () => {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base shadow-sm transition-all duration-200"
+          className="block w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base shadow-sm transition-all duration-200"
           placeholder="Mijoz ismi, telefoni yoki ID raqami boʻyicha qidirish..."
         />
       </div>
@@ -181,7 +181,7 @@ export const Customers: React.FC = () => {
         /* Customers List */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {customers.length === 0 ? (
-            <div className="col-span-full bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <div className="col-span-full bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 p-12 text-center">
               <p className="text-gray-500 font-medium">Mijozlar topilmadi.</p>
               {search && (
                 <button
@@ -199,7 +199,7 @@ export const Customers: React.FC = () => {
                 <Link
                   key={c.id}
                   to={`/customers/${c.id}`}
-                  className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all duration-300 flex items-center justify-between group"
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all duration-300 flex items-center justify-between group"
                 >
                   <div className="space-y-1.5 min-w-0 pr-4">
                     <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200 truncate">
@@ -246,7 +246,7 @@ export const Customers: React.FC = () => {
       {/* Create Customer Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
             <h3 className="text-lg font-bold text-gray-900">Yangi mijoz qoʻshish</h3>
 
             {modalError && (

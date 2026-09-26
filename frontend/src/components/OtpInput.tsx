@@ -152,22 +152,22 @@ export const OtpInput: React.FC<OtpInputProps> = ({
     <div className="space-y-5">
       {/* Purpose badge — maqsad aniq ko'rinadi */}
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-[11px] font-black tracking-wider text-indigo-700">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900 text-[11px] font-black tracking-wider text-indigo-700 dark:text-indigo-300">
           [{PURPOSE_LABEL[purpose]}]
         </span>
         {expiresAt && !expired && (
-          <span className="text-xs font-semibold text-gray-400 tabular-nums">
+          <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 tabular-nums">
             {Math.floor((timeLeft || 0) / 60)}:{String((timeLeft || 0) % 60).padStart(2, '0')}
           </span>
         )}
         {expired && <span className="text-xs font-bold text-red-500">Kod muddati tugadi</span>}
       </div>
 
-      <p className="text-sm text-gray-500 leading-snug">{PURPOSE_TEXT[purpose]}</p>
+      <p className="text-sm text-gray-500 dark:text-slate-400 leading-snug">{PURPOSE_TEXT[purpose]}</p>
 
       {hasError && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg animate-slide-in" role="alert">
-          <p className="text-xs font-semibold text-red-700">{error}</p>
+        <div className="bg-red-50 dark:bg-red-950/50 border-l-4 border-red-500 p-3 rounded-r-lg animate-slide-in" role="alert">
+          <p className="text-xs font-semibold text-red-700 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -193,11 +193,11 @@ export const OtpInput: React.FC<OtpInputProps> = ({
             onFocus={(e) => e.target.select()}
             className={`w-full aspect-square max-w-[52px] text-center text-xl font-black rounded-xl border-2 transition-all duration-150 outline-none
               ${hasError
-                ? 'border-red-300 bg-red-50 text-red-700 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+                ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-900'
                 : d
-                ? 'border-indigo-400 bg-indigo-50/50 text-gray-900'
-                : 'border-gray-200 bg-gray-50 text-gray-900'
-              } focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60`}
+                ? 'border-indigo-400 dark:border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-gray-900 dark:text-white'
+                : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white'
+              } focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 disabled:opacity-60`}
           />
         ))}
       </div>
@@ -207,7 +207,7 @@ export const OtpInput: React.FC<OtpInputProps> = ({
           <button
             type="button"
             onClick={onBack}
-            className="text-xs font-semibold text-gray-500 hover:text-gray-700 transition"
+            className="text-xs font-semibold text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition"
           >
             ← Orqaga
           </button>
@@ -217,7 +217,7 @@ export const OtpInput: React.FC<OtpInputProps> = ({
             type="button"
             onClick={onResend}
             disabled={resendIn > 0 || verifying}
-            className="ml-auto text-xs font-bold text-indigo-600 hover:text-indigo-800 disabled:text-gray-300 disabled:cursor-not-allowed transition"
+            className="ml-auto text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 disabled:text-gray-300 dark:disabled:text-slate-600 disabled:cursor-not-allowed transition"
           >
             {resendIn > 0 ? `Qayta yuborish (${resendIn}s)` : 'Kodni qayta yuborish'}
           </button>
@@ -225,8 +225,8 @@ export const OtpInput: React.FC<OtpInputProps> = ({
       </div>
 
       {verifying && (
-        <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-500">
-          <span className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+        <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
+          <span className="w-4 h-4 border-2 border-indigo-200 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin" />
           Tasdiqlanmoqda...
         </div>
       )}

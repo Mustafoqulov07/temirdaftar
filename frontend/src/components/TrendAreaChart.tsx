@@ -78,10 +78,10 @@ export const TrendAreaChart: React.FC<TrendAreaChartProps> = ({
   if (!data.length) {
     return (
       <div
-        className="flex items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/50"
+        className="flex items-center justify-center rounded-xl border border-dashed border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50"
         style={{ height }}
       >
-        <p className="text-sm text-gray-400 font-medium">Hozircha maʼlumot yoʻq</p>
+        <p className="text-sm text-gray-400 dark:text-slate-500 font-medium">Hozircha maʼlumot yoʻq</p>
       </div>
     );
   }
@@ -120,6 +120,7 @@ export const TrendAreaChart: React.FC<TrendAreaChartProps> = ({
               y1={y}
               y2={y}
               stroke="#e5e7eb"
+              className="dark:stroke-slate-700"
               strokeWidth="1"
               strokeDasharray="4 6"
             />
@@ -154,7 +155,7 @@ export const TrendAreaChart: React.FC<TrendAreaChartProps> = ({
             x={points[i].x}
             y={H - 8}
             textAnchor="middle"
-            className="fill-gray-400"
+            className="fill-gray-400 dark:fill-slate-500"
             style={{ fontSize: 11, fontWeight: 600 }}
           >
             {d.label}
@@ -198,7 +199,7 @@ export const TrendAreaChart: React.FC<TrendAreaChartProps> = ({
       )}
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-6 mt-3 text-xs font-semibold text-gray-500">
+      <div className="flex items-center justify-center gap-6 mt-3 text-xs font-semibold text-gray-500 dark:text-slate-400">
         <span className="flex items-center gap-2">
           <span className="w-3 h-1.5 rounded-full bg-indigo-500" /> Berilgan qarz
         </span>

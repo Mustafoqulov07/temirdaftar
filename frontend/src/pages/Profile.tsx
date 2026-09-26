@@ -177,7 +177,7 @@ export const Profile: React.FC = () => {
       {!isEditing ? (
         // VIEW MODE
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
             {/* Store Information */}
             <div className="p-6 flex items-start space-x-4">
               <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
@@ -242,7 +242,7 @@ export const Profile: React.FC = () => {
       ) : (
         // EDIT MODE FORM
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-5">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 shadow-sm p-6 space-y-5">
             <div className="border-b border-gray-100 pb-3">
               <h2 className="text-lg font-bold text-gray-900">Maʼlumotlarni oʻzgartirish</h2>
               <p className="text-xs text-gray-400">Kerakli maydonlarni toʻldiring va saqlang</p>

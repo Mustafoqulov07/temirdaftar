@@ -13,6 +13,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminStores } from './pages/admin/AdminStores';
 import { AdminBroadcast } from './pages/admin/AdminBroadcast';
 
+import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -63,8 +64,9 @@ const SuperAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
 function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
         <BrowserRouter>
         <Routes>
           {/* Public Routes */}
@@ -149,8 +151,9 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
     </ToastProvider>
+    </ThemeProvider>
   );
 }
 

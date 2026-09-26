@@ -263,11 +263,11 @@ export const Dashboard: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">Dashboard</h1>
-          <p className="text-sm text-gray-500">Doʻkoningizning joriy holati va hisob-kitoblar</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Doʻkoningizning joriy holati va hisob-kitoblar</p>
         </div>
         <button
           onClick={handleRefresh}
-          className="flex items-center space-x-1.5 px-3.5 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-200 shadow-sm"
+          className="flex items-center space-x-1.5 px-3.5 py-2 bg-white dark:bg-slate-900 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-200 shadow-sm"
         >
           <ArrowPathIcon className={`w-4 h-4 ${refreshing ? 'animate-spin text-indigo-600' : 'text-gray-500'}`} />
           <span>Yangilash</span>
@@ -284,7 +284,7 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <button
           onClick={() => setCustomerModalOpen(true)}
-          className="flex items-center justify-center space-x-2.5 bg-white border border-indigo-100 hover:border-indigo-200 text-indigo-700 font-bold py-4 px-6 rounded-2xl shadow-sm hover:shadow-indigo-50 hover:bg-indigo-50/30 transition-all duration-200 text-base"
+          className="flex items-center justify-center space-x-2.5 bg-white dark:bg-slate-900 border border-indigo-100 hover:border-indigo-200 text-indigo-700 font-bold py-4 px-6 rounded-2xl shadow-sm hover:shadow-indigo-50 hover:bg-indigo-50/30 transition-all duration-200 text-base"
         >
           <UserPlusIcon className="w-5 h-5 text-indigo-600" />
           <span>+ Mijoz qoʻshish</span>
@@ -307,16 +307,16 @@ export const Dashboard: React.FC = () => {
 
       {/* Metrics Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jami mijozlar</span>
           <div className="flex items-baseline mt-2">
-            <span className="text-2xl font-bold text-gray-900">{metrics?.totalCustomers}</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{metrics?.totalCustomers}</span>
             <span className="text-xs font-medium text-gray-400 ml-1">ta</span>
           </div>
           <UsersIcon className="w-5 h-5 text-gray-400 mt-2 self-end" />
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jami qarzdorlik</span>
           <div className="mt-2">
             <span className="text-xl font-bold text-red-600 truncate block">{formatMoney(metrics?.totalDebtSum || 0)}</span>
@@ -324,7 +324,7 @@ export const Dashboard: React.FC = () => {
           <ExclamationCircleIcon className="w-5 h-5 text-red-400 mt-2 self-end" />
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between col-span-2 lg:col-span-1">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between col-span-2 lg:col-span-1">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bugun tushgan toʻlovlar</span>
           <div className="mt-2">
             <span className="text-xl font-bold text-emerald-600 truncate block">{formatMoney(metrics?.todayPaymentsSum || 0)}</span>
@@ -332,7 +332,7 @@ export const Dashboard: React.FC = () => {
           <BanknotesIcon className="w-5 h-5 text-emerald-400 mt-2 self-end" />
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Muddati oʻtgan</span>
           <div className="mt-2">
             <span className="text-xl font-bold text-rose-700 truncate block">{formatMoney(metrics?.overdueDebtsSum || 0)}</span>
@@ -340,7 +340,7 @@ export const Dashboard: React.FC = () => {
           <ExclamationCircleIcon className="w-5 h-5 text-rose-500 mt-2 self-end" />
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bugun kutilayotgan</span>
           <div className="mt-2">
             <span className="text-xl font-bold text-amber-600 truncate block">{formatMoney(metrics?.todayDebtsSum || 0)}</span>
@@ -350,11 +350,11 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* 7 kunlik tendensiya grafigi */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">7 kunlik tendensiya</h2>
-            <p className="text-xs text-gray-500">Kunlik qarz va toʻlov dinamikasi</p>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">7 kunlik tendensiya</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400">Kunlik qarz va toʻlov dinamikasi</p>
           </div>
         </div>
         <TrendAreaChart data={trend} />
@@ -363,21 +363,21 @@ export const Dashboard: React.FC = () => {
       {/* Main Grid: Top Debtors vs Last Transactions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Debtors card */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Eng koʻp qarzdorlar</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Eng koʻp qarzdorlar</h2>
             <Link to="/customers" className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center">
               <span>Barchasi</span>
               <ChevronRightIcon className="w-3.5 h-3.5 ml-0.5" />
             </Link>
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-slate-800">
             {topCustomers.length === 0 ? (
               <p className="text-sm text-gray-500 py-4 text-center">Hozircha faol qarzdor mijozlar yoʻq.</p>
             ) : (
               topCustomers.map((customer) => (
-                <div key={customer.id} className="flex items-center justify-between py-3 hover:bg-gray-50/50 px-2 rounded-xl transition-all duration-200">
+                <div key={customer.id} className="flex items-center justify-between py-3 hover:bg-gray-50/50 dark:bg-slate-800/50 px-2 rounded-xl transition-all duration-200">
                   <div className="space-y-0.5">
                     <Link to={`/customers/${customer.id}`} className="text-sm font-bold text-gray-900 hover:underline">
                       {customer.fullName}
@@ -401,10 +401,10 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Oxirgi operatsiyalar card */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-          <h2 className="text-lg font-bold text-gray-900">Oxirgi qarz operatsiyalari</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Oxirgi qarz operatsiyalari</h2>
 
-          <div className="divide-y divide-gray-100 max-h-[350px] overflow-y-auto pr-1">
+          <div className="divide-y divide-gray-100 dark:divide-slate-800 max-h-[350px] overflow-y-auto pr-1">
             {activities.length === 0 ? (
               <p className="text-sm text-gray-500 py-4 text-center">Hozircha hech qanday tranzaksiya mavjud emas.</p>
             ) : (
@@ -419,7 +419,7 @@ export const Dashboard: React.FC = () => {
                       }`}>
                         {act.type === 'DEBT' ? 'Qarz' : 'Toʻlov'}
                       </span>
-                      <span className="text-sm font-bold text-gray-900">{act.customerName}</span>
+                      <span className="text-sm font-bold text-gray-900 dark:text-white">{act.customerName}</span>
                     </div>
                     <p className="text-xs text-gray-500 font-medium">
                       {formatDate(act.date)} {act.comment && `• ${act.comment}`}
@@ -444,8 +444,8 @@ export const Dashboard: React.FC = () => {
       {/* Customer Modal */}
       {customerModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
-            <h3 className="text-lg font-bold text-gray-900">Yangi mijoz qoʻshish</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Yangi mijoz qoʻshish</h3>
 
             {customerModalError && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700 flex items-start space-x-2 animate-slide-in">
@@ -518,8 +518,8 @@ export const Dashboard: React.FC = () => {
       {/* Debt Modal */}
       {debtModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4">
-            <h3 className="text-lg font-bold text-gray-900">Yangi qarz yozish</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Yangi qarz yozish</h3>
             <form onSubmit={handleAddDebtSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Mijozni tanlang</label>
@@ -618,8 +618,8 @@ export const Dashboard: React.FC = () => {
       {/* Payment Modal */}
       {paymentModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
-            <h3 className="text-lg font-bold text-gray-900">Toʻlov qabul qilish</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Toʻlov qabul qilish</h3>
             <form onSubmit={handleAddPaymentSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Mijozni tanlang</label>
@@ -644,7 +644,7 @@ export const Dashboard: React.FC = () => {
                 </select>
                 {selectedCustomerId && (
                   <div className="mt-1.5 flex items-center justify-between text-xs">
-                    <span className="text-gray-500">
+                    <span className="text-gray-500 dark:text-slate-400">
                       Joriy qarzdorlik:
                     </span>
                     <span className="font-bold text-red-600">

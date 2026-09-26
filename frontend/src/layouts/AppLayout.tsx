@@ -30,9 +30,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col pb-20 md:pb-0">
       {/* Desktop Header */}
-      <header className="hidden md:block bg-white border-b border-gray-200 sticky top-0 z-30">
+      <header className="hidden md:block bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-8">
             <span className="text-xl font-bold text-indigo-600 tracking-tight flex items-center">
@@ -46,8 +46,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                   to={item.path}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(item.path)
-                      ? 'bg-indigo-50 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
+                      : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-slate-200'
                   }`}
                 >
                   {item.name}
@@ -64,7 +64,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                 <span>👑 Super Admin</span>
               </Link>
             )}
-            <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full">
+            <span className="text-sm font-semibold text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
               🏬 {store?.name}
             </span>
             <button
@@ -79,7 +79,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       </header>
 
       {/* Mobile Header */}
-      <header className="md:hidden bg-white border-b border-gray-100 sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
+      <header className="md:hidden bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
         <span className="text-lg font-bold text-indigo-600 tracking-tight flex items-center">
           <span className="mr-1.5 px-2 py-0.5 bg-indigo-600 text-white rounded text-xs font-extrabold">T</span>
           Temir Daftar
@@ -105,7 +105,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 h-16 flex justify-around items-center px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 z-30 h-16 flex justify-around items-center px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -114,7 +114,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               key={item.path}
               to={item.path}
               className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-medium transition-all duration-200 ${
-                active ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'
+                active ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-300'
               }`}
             >
               <Icon className={`w-5 h-5 mb-0.5 ${active ? 'text-indigo-600' : 'text-gray-400'}`} />

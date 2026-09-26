@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import ThemeToggle from '../components/ThemeToggle';
 import { UserPlusIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 /* ---------- Brend paneli (chap tomon, desktop) ---------- */
 const BrandPanel: React.FC = () => (
-  <div className="hidden lg:flex flex-col justify-between w-[46%] xl:w-[52%] p-12 text-white relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-900">
+  <div className="hidden lg:flex flex-col justify-between w-[46%] xl:w-[52%] p-12 text-white relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-900 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-950">
     <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
     <div className="absolute bottom-0 -left-32 w-[28rem] h-[28rem] bg-violet-400/20 rounded-full blur-3xl" />
 
@@ -51,6 +52,7 @@ export const Register: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('+998');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [storeName, setStoreName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -90,6 +92,12 @@ export const Register: React.FC = () => {
       return;
     }
 
+    if (!telegramRegData && password !== confirmPassword) {
+      setError('Parollar mos kelmadi. Iltimos, qayta kiriting.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await api.post('/auth/register', {
         phoneNumber,
@@ -123,7 +131,7 @@ export const Register: React.FC = () => {
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
-        'Roʻyxatdan oʻtishda xatolik yuz berdi. Iltimos, qayta urining.'
+        (err.response ? 'Roʻyxatdan oʻtishda xatolik yuz berdi. Iltimos, qayta urining.' : 'Internet ulanishini tekshiring.')
       );
     } finally {
       setLoading(false);
@@ -131,7 +139,7 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
       <BrandPanel />
 
       {/* O'ng tomon — forma */}
@@ -142,20 +150,23 @@ export const Register: React.FC = () => {
             <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-indigo-200">
               T
             </div>
-            <span className="text-xl font-bold text-gray-900 tracking-tight">Temir Daftar</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Temir Daftar</span>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/60 border border-gray-100 p-8 sm:p-10">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-gray-200/60 dark:shadow-black/40 border border-gray-100 dark:border-slate-800 p-8 sm:p-10 relative">
+            <div className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
+              <ThemeToggle />
+            </div>
             <div className="space-y-2 mb-8">
-              <h1 className="text-2xl font-black tracking-tight text-gray-900">Yangi hisob yaratish</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">Yangi hisob yaratish</h1>
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 “Temir Daftar” tizimida roʻyxatdan oʻting — bir daqiqada tayyor
               </p>
             </div>
 
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg mb-6 animate-slide-in">
-                <p className="text-xs font-semibold text-red-700">{error}</p>
+            <div className="bg-red-50 dark:bg-red-950/50 border-l-4 border-red-500 p-4 rounded-r-lg mb-6 animate-slide-in">
+              <p className="text-xs font-semibold text-red-700 dark:text-red-400">{error}</p>
               </div>
             )}
 
@@ -169,43 +180,43 @@ export const Register: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ism va Familiyangiz</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Ism va Familiyangiz</label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
                   placeholder="Ali Valiyev"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Doʻkoningiz (magazin) nomi</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Doʻkoningiz (magazin) nomi</label>
                 <input
                   type="text"
                   value={storeName}
                   onChange={(e) => setStoreName(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
                   placeholder="Mahalla Oziq-ovqat Doʻkoni"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Telefon raqam</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Telefon raqam</label>
                 <input
                   type="text"
                   value={phoneNumber}
                   onChange={handlePhoneChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
                   placeholder="+998901234567"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
                   Parol {telegramRegData && <span className="text-gray-400 font-normal">(ixtiyoriy)</span>}
                 </label>
                 <input
@@ -213,10 +224,33 @@ export const Register: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required={!telegramRegData}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
                   placeholder={telegramRegData ? "Ixtiyoriy (veb-saytga kirish uchun)" : "Kamida 6 belgidan iborat parol"}
                 />
               </div>
+
+              {!telegramRegData && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
+                    Parolni tasdiqlash
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 text-base transition-all duration-200 ${
+                      confirmPassword && confirmPassword !== password
+                        ? 'border-red-400 dark:border-red-500 ring-2 ring-red-100 dark:ring-red-950'
+                        : 'border-gray-300 dark:border-slate-700'
+                    }`}
+                    placeholder="Parolni qayta kiriting"
+                  />
+                  {confirmPassword && confirmPassword !== password && (
+                    <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">Parollar mos kelmadi</p>
+                  )}
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -237,10 +271,10 @@ export const Register: React.FC = () => {
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-              <p className="text-sm text-gray-600">
+            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-800 text-center">
+              <p className="text-sm text-gray-600 dark:text-slate-400">
                 Akkauntingiz bormi?{' '}
-                <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                <Link to="/login" className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline">
                   Tizimga kirish
                 </Link>
               </p>

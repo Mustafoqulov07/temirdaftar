@@ -26,8 +26,8 @@ export class OtpController {
     const result = await this.otpService.verifyOtp(dto.otpId, dto.code);
     if (!result.valid) {
       const err: any = new Error(result.message || 'Kod notoʻgʻri.');
-      err.status = 400;
-      err.getResponse = () => ({ message: result.message });
+      err.status = result.code === 'TOO_MANY_ATTEMPTS' ? 429 : 400;
+      err.getResponse = () => ({ message: result.message, code: result.code });
       throw err;
     }
 

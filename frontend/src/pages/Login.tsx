@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api, { setApiToken } from '../services/api';
 import OtpInput from '../components/OtpInput';
+import ThemeToggle from '../components/ThemeToggle';
 import {
   LockClosedIcon,
   ShieldCheckIcon,
@@ -14,7 +15,7 @@ import {
 
 /* ---------- Brend paneli (chap tomon, desktop) ---------- */
 const BrandPanel: React.FC<{ subtitle: string }> = ({ subtitle }) => (
-  <div className="hidden lg:flex flex-col justify-between w-[46%] xl:w-[52%] p-12 text-white relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-900">
+  <div className="hidden lg:flex flex-col justify-between w-[46%] xl:w-[52%] p-12 text-white relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-900 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-950">
     {/* Dekorativ shakllar */}
     <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
     <div className="absolute bottom-0 -left-32 w-[28rem] h-[28rem] bg-violet-400/20 rounded-full blur-3xl" />
@@ -134,7 +135,7 @@ export const Login: React.FC = () => {
       setOtpMode(true);
       showToast('Kod Telegram botga yuborildi', 'success');
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message;
+      const msg = err.response?.data?.message || (err.response ? err.message : 'Internet ulanishini tekshiring.');
       if (err.response?.status === 429) setOtpError(msg || 'Juda koʻp urinish. Keyinroq qayta urinib koʻring.');
       else setError(msg || 'Kod yuborishda xatolik yuz berdi');
     } finally {
@@ -154,7 +155,7 @@ export const Login: React.FC = () => {
       }
     } catch (err: any) {
       const status = err.response?.status;
-      const msg = err.response?.data?.message || err.message;
+      const msg = err.response?.data?.message || (err.response ? err.message : 'Internet ulanishini tekshiring.');
       setOtpError(msg || 'Kod notoʻgʻri.');
       if (status === 400 && msg?.includes('muddati')) {
         // Kod eskirgan — yangi OTP so'raymiz
@@ -236,7 +237,7 @@ export const Login: React.FC = () => {
       }
       setError(
         err.response?.data?.message ||
-        'Tizimga kirishda xatolik yuz berdi. Iltimos, qayta urining.'
+        (err.response ? 'Tizimga kirishda xatolik yuz berdi. Iltimos, qayta urining.' : 'Internet ulanishini tekshiring.')
       );
     } finally {
       setLoading(false);
@@ -313,31 +314,34 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
       <BrandPanel subtitle="Doʻkoningizdagi barcha qarz va toʻlovlarni Temir Daftar bilan tartibli, aniq va xavfsiz yuriting. Har bir mijoz tarixi bir joyda." />
 
       {/* O'ng tomon — forma */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 relative">
+        <div className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
+          <ThemeToggle />
+        </div>
         <div className="w-full max-w-md">
           {/* Mobil logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-indigo-200">
               T
             </div>
-            <span className="text-xl font-bold text-gray-900 tracking-tight">Temir Daftar</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Temir Daftar</span>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/60 border border-gray-100 p-8 sm:p-10">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-gray-200/60 dark:shadow-black/40 border border-gray-100 dark:border-slate-800 p-8 sm:p-10">
             <div className="space-y-2 mb-8">
-              <h1 className="text-2xl font-black tracking-tight text-gray-900">Tizimga kirish</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">Tizimga kirish</h1>
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 Hisobingizga kirish uchun telefon raqam va parolingizni kiriting
               </p>
             </div>
 
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg mb-6 animate-slide-in">
-                <p className="text-xs font-semibold text-red-700">{error}</p>
+              <div className="bg-red-50 dark:bg-red-950/50 border-l-4 border-red-500 p-4 rounded-r-lg mb-6 animate-slide-in">
+                <p className="text-xs font-semibold text-red-700 dark:text-red-400">{error}</p>
               </div>
             )}
 
@@ -359,26 +363,24 @@ export const Login: React.FC = () => {
               <>
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Telefon raqam</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Telefon raqam</label>
                     <input
                       type="text"
                       value={phoneNumber}
                       onChange={handlePhoneChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
                       placeholder="+998901234567"
                     />
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
-                      <label className="block text-sm font-semibold text-gray-700">Parol</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Parol</label>
                       <button
                         type="button"
                         onClick={() => setForgotModalOpen(true)}
-                        className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
-                      >
-                        Parolni unutdingizmi?
+                        className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline">Parolni unutdingizmi?
                       </button>
                     </div>
                     <input
@@ -386,7 +388,7 @@ export const Login: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
                       placeholder="••••••"
                     />
                   </div>
@@ -413,8 +415,8 @@ export const Login: React.FC = () => {
                 {/* Telegram OTP varianti */}
                 <div className="mt-6">
                   <div className="relative flex items-center justify-center">
-                    <span className="absolute inset-x-0 top-1/2 h-px bg-gray-100" />
-                    <span className="relative bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                    <span className="absolute inset-x-0 top-1/2 h-px bg-gray-100 dark:bg-slate-800" />
+                    <span className="relative bg-white dark:bg-slate-900 px-3 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
                       yoki
                     </span>
                   </div>
@@ -422,7 +424,7 @@ export const Login: React.FC = () => {
                     type="button"
                     onClick={requestTelegramOtp}
                     disabled={otpRequesting}
-                    className="mt-4 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#229ED9]/10 hover:bg-[#229ED9]/20 border border-[#229ED9]/30 text-[#1d8cc4] font-bold text-sm transition-all duration-200 disabled:opacity-50"
+                    className="mt-4 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#229ED9]/10 dark:bg-[#229ED9]/15 hover:bg-[#229ED9]/20 dark:hover:bg-[#229ED9]/25 border border-[#229ED9]/30 dark:border-[#229ED9]/40 text-[#1d8cc4] dark:text-sky-400 font-bold text-sm transition-all duration-200 disabled:opacity-50"
                   >
                     {otpRequesting ? (
                       <span className="w-4 h-4 border-2 border-[#229ED9]/30 border-t-[#229ED9] rounded-full animate-spin" />
@@ -435,9 +437,9 @@ export const Login: React.FC = () => {
 
                 {/* BOT_NOT_STARTED holati */}
                 {botNotStarted && (
-                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
-                    <p className="text-sm font-bold text-amber-800">Telegram botni ishga tushiring</p>
-                    <p className="text-xs text-amber-700 leading-snug">
+                  <div className="mt-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl p-4 space-y-3">
+                    <p className="text-sm font-bold text-amber-800 dark:text-amber-300">Telegram botni ishga tushiring</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-200/80 leading-snug">
                       Kod yuborilishi uchun avval botimizga /start buyrugʻini yuborish kerak. Botni ochib, kontaktingizni yuboring — kod darhol keladi.
                     </p>
                     <a
@@ -455,9 +457,9 @@ export const Login: React.FC = () => {
             )}
 
             <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-slate-400">
                 Hisobingiz yoʻqmi?{' '}
-                <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                <Link to="/register" className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline">
                   Roʻyxatdan oʻtish
                 </Link>
               </p>
@@ -469,7 +471,7 @@ export const Login: React.FC = () => {
       {/* Forgot Password Modal */}
       {forgotModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4">
             <div className="text-center space-y-2">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-50 text-indigo-600">
                 <svg
@@ -487,30 +489,27 @@ export const Login: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Parolni tiklash</h3>
-              <p className="text-xs text-gray-500">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Parolni tiklash</h3>
+              <p className="text-xs text-gray-500 dark:text-slate-400">
                 Tasdiqlash kodi Telegram botingizga yuboriladi
               </p>
             </div>
 
-            {resetError && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded text-left">
-                <p className="text-xs font-semibold text-red-700 leading-snug">{resetError}</p>
+            {resetError && (<div className="bg-red-50 dark:bg-red-950/50 border-l-4 border-red-500 p-3 rounded text-left">
+                  <p className="text-xs font-semibold text-red-700 dark:text-red-400 leading-snug">{resetError}</p>
               </div>
             )}
 
             {resetStep === 1 ? (
               <form onSubmit={handleRequestCode} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Telefon raqamingiz
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">Telefon raqamingiz</label>
                   <input
                     type="text"
                     value={resetPhone}
                     onChange={handleResetPhoneChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-gray-900"
                     placeholder="+998901234567"
                   />
                 </div>
@@ -524,13 +523,13 @@ export const Login: React.FC = () => {
               </form>
             ) : (
               <form onSubmit={handleResetSubmit} className="space-y-4">
-                <div className="bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl text-left">
-                  <p className="text-xs text-emerald-800 leading-snug">
+                <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900 p-2.5 rounded-xl text-left">
+                  <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-snug">
                     Tasdiqlash kodi Telegram botingizga yuborildi. Iltimos, kodni kiriting.
                   </p>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
                     Tasdiqlash kodi (6 xonali)
                   </label>
                   <input
@@ -544,7 +543,7 @@ export const Login: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
                     Yangi parol (kamida 6 ta belgi)
                   </label>
                   <input
@@ -552,7 +551,7 @@ export const Login: React.FC = () => {
                     value={resetNewPassword}
                     onChange={(e) => setResetNewPassword(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-gray-900"
                     placeholder="••••••"
                   />
                 </div>
@@ -588,7 +587,7 @@ export const Login: React.FC = () => {
                   setResetCode('');
                   setResetNewPassword('');
                 }}
-                className="w-full py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-200"
+                className="w-full py-2 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all duration-200"
               >
                 Bekor qilish
               </button>
@@ -600,7 +599,7 @@ export const Login: React.FC = () => {
       {/* Blocked Account Modal with Direct Admin Contact */}
       {blockedModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in zoom-in-95">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-red-100 text-center space-y-5">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-red-100 dark:border-red-900/50 text-center space-y-5">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-red-50 text-red-600 shadow-inner">
               <svg
                 className="w-8 h-8"
@@ -619,8 +618,8 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xl font-black text-gray-900 tracking-tight">Profilingiz Bloklangan!</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
+              <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Profilingiz Bloklangan!</h3>
+              <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed">
                 Ushbu doʻkon akkaunti administrator tomonidan cheklangan. Hisobni qayta faollashtirish uchun Super Administratorga murojaat qiling:
               </p>
             </div>
@@ -653,7 +652,7 @@ export const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setBlockedModalOpen(false)}
-                className="w-full py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+                className="w-full py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
               >
                 Tushunarli, yopish
               </button>

@@ -310,7 +310,7 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Recent Stores Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition">
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
           <div className="flex items-center justify-between">
             <div>

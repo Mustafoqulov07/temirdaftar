@@ -342,7 +342,7 @@ export const CustomerDetail: React.FC = () => {
       </div>
 
       {/* Customer Profile Card */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
             <h2 className="text-2xl font-black text-gray-900 leading-tight">{customer.fullName}</h2>
@@ -398,7 +398,7 @@ export const CustomerDetail: React.FC = () => {
       </div>
 
       {/* History log */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
         <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">Qarzlar va toʻlovlar tarixi</h3>
 
         <div className="space-y-4">
@@ -467,7 +467,7 @@ export const CustomerDetail: React.FC = () => {
       {/* Edit Customer Modal */}
       {editModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
             <h3 className="text-lg font-bold text-gray-900">Mijoz maʻlumotlarini tahrirlash</h3>
 
             {editModalError && (
@@ -539,7 +539,7 @@ export const CustomerDetail: React.FC = () => {
       {/* Debt Modal */}
       {debtModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4">
             <h3 className="text-lg font-bold text-gray-900">Yangi qarz yozish</h3>
             <form onSubmit={handleAddDebtSubmit} className="space-y-4">
               <div>
@@ -622,7 +622,7 @@ export const CustomerDetail: React.FC = () => {
       {/* Payment Modal */}
       {paymentModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
             <h3 className="text-lg font-bold text-gray-900">Toʻlov qabul qilish</h3>
             <form onSubmit={handleAddPaymentSubmit} className="space-y-4">
               <div>
@@ -670,7 +670,7 @@ export const CustomerDetail: React.FC = () => {
       {/* Delete Customer Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
             <div className="text-center space-y-2">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 text-red-600">
                 <TrashIcon className="h-6 w-6" />
@@ -703,7 +703,7 @@ export const CustomerDetail: React.FC = () => {
       {/* Reset Debt Confirmation Modal */}
       {resetConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
             <div className="text-center space-y-2">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-600">
                 <ArrowPathIcon className="h-6 w-6 animate-spin-slow" />

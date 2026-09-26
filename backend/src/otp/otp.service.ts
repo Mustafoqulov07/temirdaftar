@@ -19,7 +19,7 @@ export interface OtpPendingState {
   phone: string;
   purpose: OtpPurpose;
   expiresAt: string;
-  status: 'PENDING' | 'SENT' | 'BOT_NOT_STARTED' | 'VERIFIED' | 'EXPIRED';
+  status: 'PENDING' | 'SENT' | 'OTP_SENT' | 'BOT_NOT_STARTED' | 'VERIFIED' | 'EXPIRED';
   /** BOT_NOT_STARTED holatida foydalanuvchini botga yo'naltirish uchun havola */
   botUrl?: string;
 }
@@ -182,7 +182,7 @@ export class OtpService {
       phone,
       purpose,
       expiresAt: new Date(now + OTP_TTL_MS).toISOString(),
-      status: 'SENT',
+      status: 'OTP_SENT',
     };
   }
 
@@ -209,27 +209,28 @@ export class OtpService {
   verifyOtp(otpId: string, code: string): {
     valid: boolean;
     message?: string;
+    code?: 'INVALID_OTP' | 'OTP_EXPIRED' | 'TOO_MANY_ATTEMPTS' | 'OTP_NOT_FOUND';
     phone?: string;
     purpose?: OtpPurpose;
   } {
     const entry = this.entries.get(otpId);
     if (!entry) {
-      return { valid: false, message: 'Kod topilmadi yoki allaqachon ishlatilgan.' };
+      return { valid: false, code: 'OTP_NOT_FOUND', message: 'Kod topilmadi yoki allaqachon ishlatilgan.' };
     }
 
     if (Date.now() > entry.expiresAt) {
       this.entries.delete(otpId);
-      return { valid: false, message: 'Kodning amal qilish muddati tugagan.' };
+      return { valid: false, code: 'OTP_EXPIRED', message: 'Kodning amal qilish muddati tugagan.' };
     }
 
     if (entry.attempts >= MAX_ATTEMPTS) {
-      this.entries.delete(otpId);
-      return { valid: false, message: 'Juda koʻp urinish. Keyinroq qayta urinib koʻring.' };
+      this.entries.delete(otpId); // entry o'chiriladi — qayta so'rash kerak
+      return { valid: false, code: 'TOO_MANY_ATTEMPTS', message: 'Juda koʻp urinish. Keyinroq qayta urinib koʻring.' };
     }
 
     entry.attempts++;
     if (hashOtp(entry.phone, entry.purpose, code) !== entry.codeHash) {
-      return { valid: false, message: 'Kod notoʻgʻri.' };
+      return { valid: false, code: 'INVALID_OTP', message: 'Kod notoʻgʻri.' };
     }
 
     this.entries.delete(otpId);
