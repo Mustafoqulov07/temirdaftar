@@ -8,7 +8,7 @@
  * - Qayta yuborish cooldown va urinishlar limiti brute force'ga qarshi
  */
 import { randomInt, createHmac } from 'crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TelegramService } from '../telegram/telegram.service';
 
@@ -58,6 +58,8 @@ export class OtpService {
 
   constructor(
     private prisma: PrismaService,
+    // TelegramModule <-> OtpModule circular import bor — shuning uchun forwardRef shart
+    @Inject(forwardRef(() => TelegramService))
     private telegramService: TelegramService,
   ) {}
 
