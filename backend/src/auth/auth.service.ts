@@ -128,6 +128,40 @@ export class AuthService {
     };
   }
 
+  /** OTP (LOGIN maqsadi) tasdiqlanganda chaqiriladi — parolsiz kirish */
+  async loginByOtp(phoneNumber: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { phoneNumber },
+      include: { store: true },
+    });
+
+    if (!user || (!user.store && user.role !== 'SUPER_ADMIN')) {
+      throw new UnauthorizedException('Foydalanuvchi topilmadi');
+    }
+
+    if (user.isBlocked) {
+      throw this.getBlockedException();
+    }
+
+    const tokens = this.generateTokens(user, user.store ? user.store.id : null);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        phoneNumber: user.phoneNumber,
+        fullName: user.fullName,
+        role: user.role || 'USER',
+      },
+      store: user.store
+        ? {
+            id: user.store.id,
+            name: user.store.name,
+          }
+        : null,
+    };
+  }
+
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { phoneNumber: dto.phoneNumber },

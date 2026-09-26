@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -10,7 +10,7 @@ import { TelegramModule } from '../telegram/telegram.module';
 @Module({
   imports: [
     PassportModule,
-    TelegramModule,
+    forwardRef(() => TelegramModule),
     JwtModule.register({
       secret: (process.env['JWT_SECRET'] || 'qarzdor-secret-key-123').trim(),
       signOptions: { expiresIn: '1h' },

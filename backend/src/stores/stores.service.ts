@@ -149,6 +149,50 @@ export class StoresService {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 10);
 
+    // 8. 7 kunlik trend (bugun + oldingi 6 kun): har kungi qarz va to'lov summalari
+    const startOf7DaysAgo = new Date(startOfToday);
+    startOf7DaysAgo.setDate(startOf7DaysAgo.getDate() - 6);
+
+    const [trendDebts, trendPayments] = await Promise.all([
+      this.prisma.debt.findMany({
+        where: {
+          customer: { storeId, deletedAt: null },
+          createdAt: { gte: startOf7DaysAgo },
+          deletedAt: null,
+        },
+        include: { items: true },
+      }),
+      this.prisma.payment.findMany({
+        where: {
+          customer: { storeId, deletedAt: null },
+          paymentDate: { gte: startOf7DaysAgo },
+          deletedAt: null,
+        },
+      }),
+    ]);
+
+    const dayLabels = ['Yak', 'Du', 'Se', 'Cho', 'Pay', 'Ju', 'Sha'];
+    const trend: { label: string; debts: number; payments: number }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const dayStart = new Date(startOfToday);
+      dayStart.setDate(dayStart.getDate() - (6 - i));
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const debtsSum = trendDebts
+        .filter((d) => d.createdAt >= dayStart && d.createdAt <= dayEnd)
+        .reduce((s, d) => s + debtTotalOf(d.items), 0);
+      const paymentsSum = trendPayments
+        .filter((p) => p.paymentDate >= dayStart && p.paymentDate <= dayEnd)
+        .reduce((s, p) => s + Number(p.amount), 0);
+
+      trend.push({
+        label: dayLabels[dayStart.getDay()],
+        debts: round2(debtsSum),
+        payments: round2(paymentsSum),
+      });
+    }
+
     return {
       metrics: {
         totalCustomers,
@@ -159,6 +203,7 @@ export class StoresService {
       },
       topCustomers,
       activities,
+      trend,
     };
   }
 }

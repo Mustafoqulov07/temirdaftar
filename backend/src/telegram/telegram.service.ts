@@ -1,6 +1,7 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Optional, Inject, forwardRef } from '@nestjs/common';
 import { Telegraf, Markup } from 'telegraf';
 import { PrismaService } from '../prisma/prisma.service';
+import { OtpService } from '../otp/otp.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -8,7 +9,10 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   private bot: Telegraf;
   private userStates = new Map<string, string>();
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    @Optional() @Inject(forwardRef(() => OtpService)) private otpService?: OtpService,
+  ) {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     if (!token) {
       console.warn('⚠️ TELEGRAM_BOT_TOKEN .env faylida koʻrsatilmagan. Telegram bot ishga tushmaydi.');
@@ -203,6 +207,12 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
             `Tabriklaymiz! Sizning Telegram hisobingiz "${existingUser.fullName}" profiliga muvaffaqiyatli bog'landi. 🎉`,
             this.getMainMenuKeyboard()
           );
+
+          // Agar saytda OTP kutilayotgan bo'lsa — darhol yuboramiz
+          // (faqat shu telefon raqamga tegishli pending OTP'larni)
+          if (this.otpService) {
+            await this.otpService.deliverPendingOtpForTelegram(telegramId, phoneNumber);
+          }
         } else {
           // Yangi foydalanuvchi yaratamiz
           const fullName = [contact.first_name, contact.last_name]

@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api, { setApiToken } from '../services/api';
+import OtpInput from '../components/OtpInput';
 import {
   LockClosedIcon,
   ShieldCheckIcon,
   ChartBarIcon,
   BellAlertIcon,
+  PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
 
 /* ---------- Brend paneli (chap tomon, desktop) ---------- */
@@ -57,6 +59,9 @@ const BrandPanel: React.FC<{ subtitle: string }> = ({ subtitle }) => (
   </div>
 );
 
+/** Backend javobida botUrl bo'lmasa — standart bot havolasi */
+const buildBotUrlFallback = () => `https://t.me/${(import.meta.env.VITE_BOT_USERNAME || 'qarzni_uzbot').replace(/^@/, '')}?start=auth`;
+
 export const Login: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('+998');
   const [password, setPassword] = useState('');
@@ -69,9 +74,98 @@ export const Login: React.FC = () => {
     telegram: '',
   });
 
+  // Telegram OTP oqimi holatlari
+  const [otpMode, setOtpMode] = useState(false);
+  const [otpId, setOtpId] = useState('');
+  const [otpExpiresAt, setOtpExpiresAt] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [botNotStarted, setBotNotStarted] = useState<string | null>(null);
+  const [otpRequesting, setOtpRequesting] = useState(false);
+
   const { login } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  const applyAuthResult = (data: { token: string; user?: any; store?: any }) => {
+    const { token } = data;
+    if (!token) return false;
+    setApiToken(token);
+    const finish = (u: any, s: any) => {
+      login(token, u, s);
+      if (u?.role === 'SUPER_ADMIN') navigate('/admin', { replace: true });
+      else navigate('/', { replace: true });
+    };
+    if (data.user) finish(data.user, data.store);
+    else {
+      api
+        .get('/auth/profile', { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => finish(res.data.user, res.data.store))
+        .catch(() => setError('Foydalanuvchi maʼlumotlarini olishda xatolik'));
+    }
+    return true;
+  };
+
+  /** Telegram OTP so'rovi — BOT_NOT_STARTED holatini ham qayta ishlaydi */
+  const requestTelegramOtp = async () => {
+    setError('');
+    setOtpError('');
+    setBotNotStarted(null);
+    if (phoneNumber.length !== 13) {
+      setError('Telefon raqam notoʻgʻri shaklda (+998XXXXXXXXX)');
+      return;
+    }
+    setOtpRequesting(true);
+    try {
+      const res = await api.post('/otp/request', {
+        phoneNumber,
+        purpose: 'LOGIN',
+      });
+      if (res.data?.status === 'BOT_NOT_STARTED') {
+        // Kod yaratildi, lekin bot hali /start qilmagan — OTP ekrani + bot havolasi ko'rsatamiz
+        setOtpId(res.data.otpId);
+        setOtpExpiresAt(res.data.expiresAt);
+        setBotNotStarted(res.data.botUrl || buildBotUrlFallback());
+        setOtpMode(true);
+        return;
+      }
+      setOtpId(res.data.otpId);
+      setOtpExpiresAt(res.data.expiresAt);
+      setOtpMode(true);
+      showToast('Kod Telegram botga yuborildi', 'success');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message;
+      if (err.response?.status === 429) setOtpError(msg || 'Juda koʻp urinish. Keyinroq qayta urinib koʻring.');
+      else setError(msg || 'Kod yuborishda xatolik yuz berdi');
+    } finally {
+      setOtpRequesting(false);
+    }
+  };
+
+  const handleOtpComplete = async (code: string) => {
+    setOtpError('');
+    setOtpVerifying(true);
+    try {
+      const res = await api.post('/otp/verify', { otpId, code });
+      if (res.data?.verified && res.data?.token) {
+        applyAuthResult(res.data);
+      } else {
+        setOtpError('Kod tasdiqlandi, lekin kirish amalga oshmadi. Qayta urinib koʻring.');
+      }
+    } catch (err: any) {
+      const status = err.response?.status;
+      const msg = err.response?.data?.message || err.message;
+      setOtpError(msg || 'Kod notoʻgʻri.');
+      if (status === 400 && msg?.includes('muddati')) {
+        // Kod eskirgan — yangi OTP so'raymiz
+        setOtpMode(false);
+        setOtpId('');
+        setBotNotStarted(null);
+      }
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
 
   // Reset password states
   const [resetStep, setResetStep] = useState(1);
@@ -131,11 +225,7 @@ export const Login: React.FC = () => {
 
       login(token, user, store);
 
-      if (user?.role === 'SUPER_ADMIN') {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/', { replace: true });
-      }
+      applyAuthResult({ token, user, store });
     } catch (err: any) {
       if (err.response?.data?.isBlocked || err.response?.data?.message?.includes('bloklangan')) {
         setSupportInfo({
@@ -251,58 +341,118 @@ export const Login: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Telefon raqam</label>
-                <input
-                  type="text"
-                  value={phoneNumber}
-                  onChange={handlePhoneChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
-                  placeholder="+998901234567"
-                />
-              </div>
+            {otpMode ? (
+              <OtpInput
+                purpose="LOGIN"
+                expiresAt={otpExpiresAt}
+                verifying={otpVerifying}
+                error={otpError}
+                onComplete={handleOtpComplete}
+                onResend={requestTelegramOtp}
+                onBack={() => {
+                  setOtpMode(false);
+                  setOtpError('');
+                  setBotNotStarted(null);
+                }}
+              />
+            ) : (
+              <>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Telefon raqam</label>
+                    <input
+                      type="text"
+                      value={phoneNumber}
+                      onChange={handlePhoneChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                      placeholder="+998901234567"
+                    />
+                  </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-sm font-semibold text-gray-700">Parol</label>
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <label className="block text-sm font-semibold text-gray-700">Parol</label>
+                      <button
+                        type="button"
+                        onClick={() => setForgotModalOpen(true)}
+                        className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                      >
+                        Parolni unutdingizmi?
+                      </button>
+                    </div>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                      placeholder="••••••"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        Kirilmoqda...
+                      </>
+                    ) : (
+                      <>
+                        <LockClosedIcon className="w-5 h-5" />
+                        Kirish
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                {/* Telegram OTP varianti */}
+                <div className="mt-6">
+                  <div className="relative flex items-center justify-center">
+                    <span className="absolute inset-x-0 top-1/2 h-px bg-gray-100" />
+                    <span className="relative bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                      yoki
+                    </span>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setForgotModalOpen(true)}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                    onClick={requestTelegramOtp}
+                    disabled={otpRequesting}
+                    className="mt-4 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#229ED9]/10 hover:bg-[#229ED9]/20 border border-[#229ED9]/30 text-[#1d8cc4] font-bold text-sm transition-all duration-200 disabled:opacity-50"
                   >
-                    Parolni unutdingizmi?
+                    {otpRequesting ? (
+                      <span className="w-4 h-4 border-2 border-[#229ED9]/30 border-t-[#229ED9] rounded-full animate-spin" />
+                    ) : (
+                      <PaperAirplaneIcon className="w-4 h-4" />
+                    )}
+                    Telegram kod orqali kirish
                   </button>
                 </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
-                  placeholder="••••••"
-                />
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base"
-              >
-                {loading ? (
-                  <>
-                    <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    Kirilmoqda...
-                  </>
-                ) : (
-                  <>
-                    <LockClosedIcon className="w-5 h-5" />
-                    Kirish
-                  </>
+                {/* BOT_NOT_STARTED holati */}
+                {botNotStarted && (
+                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+                    <p className="text-sm font-bold text-amber-800">Telegram botni ishga tushiring</p>
+                    <p className="text-xs text-amber-700 leading-snug">
+                      Kod yuborilishi uchun avval botimizga /start buyrugʻini yuborish kerak. Botni ochib, kontaktingizni yuboring — kod darhol keladi.
+                    </p>
+                    <a
+                      href={botNotStarted || '#'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#229ED9] hover:bg-[#1d8cc4] text-white font-bold text-sm shadow-md transition-all duration-200"
+                    >
+                      <PaperAirplaneIcon className="w-4 h-4" />
+                      Open Telegram Bot
+                    </a>
+                  </div>
                 )}
-              </button>
-            </form>
+              </>
+            )}
 
             <div className="mt-8 pt-6 border-t border-gray-100 text-center">
               <p className="text-sm text-gray-600">

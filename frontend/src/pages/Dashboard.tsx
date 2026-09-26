@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import TrendAreaChart, { type TrendPoint } from '../components/TrendAreaChart';
 import {
   UserPlusIcon,
   PlusIcon,
@@ -46,6 +47,7 @@ export const Dashboard: React.FC = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [trend, setTrend] = useState<TrendPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -87,6 +89,7 @@ export const Dashboard: React.FC = () => {
       setMetrics(response.data.metrics);
       setTopCustomers(response.data.topCustomers);
       setActivities(response.data.activities);
+      if (Array.isArray(response.data.trend)) setTrend(response.data.trend);
     } catch (err: any) {
       setError('Maʻlumotlarni yuklashda xatolik yuz berdi.');
     } finally {
@@ -344,6 +347,17 @@ export const Dashboard: React.FC = () => {
           </div>
           <CalendarIcon className="w-5 h-5 text-amber-400 mt-2 self-end" />
         </div>
+      </div>
+
+      {/* 7 kunlik tendensiya grafigi */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">7 kunlik tendensiya</h2>
+            <p className="text-xs text-gray-500">Kunlik qarz va toʻlov dinamikasi</p>
+          </div>
+        </div>
+        <TrendAreaChart data={trend} />
       </div>
 
       {/* Main Grid: Top Debtors vs Last Transactions */}
