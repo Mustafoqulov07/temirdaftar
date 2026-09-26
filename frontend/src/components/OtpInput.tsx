@@ -11,8 +11,15 @@ interface OtpInputProps {
   verifying?: boolean;
   /** Xato matni (clear error state) */
   error?: string;
-  /** 6 raqam to'lganda chaqiriladi */
-  onComplete: (code: string) => void;
+  /** 6 raqam to'lganda chaqiriladi (onSubmit berilmasa — majburiy) */
+  onComplete?: (code: string) => void;
+  /**
+   * Berilsa — kod avtomatik yuborilmaydi: 6 raqam to'lgach
+   * "Kirish"-uslubidagi tugma chiqadi va bosilganda shu funksiya chaqiriladi.
+   */
+  onSubmit?: (code: string) => void;
+  /** Submit tugmasi matni (onSubmit berilganda ko'rinadi) */
+  submitLabel?: string;
   /** Qayta yuborish tugmasi bosilganda */
   onResend?: () => void;
   /** Orqaga qaytish tugmasi (ixtiyoriy) */
@@ -38,6 +45,8 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   verifying = false,
   error,
   onComplete,
+  onSubmit,
+  submitLabel = 'Tasdiqlash',
   onResend,
   onBack,
 }) => {
@@ -79,13 +88,15 @@ export const OtpInput: React.FC<OtpInputProps> = ({
 
   const emitIfComplete = useCallback(
     (arr: string[]) => {
+      // Manual submit rejimida avtomatik yuborilmaydi — foydalanuvchi tugmani bosadi
+      if (onSubmit) return;
       const code = arr.join('');
       if (code.length === LENGTH && !code.includes('') && !submittedRef.current) {
         submittedRef.current = true;
-        onComplete(code);
+        onComplete?.(code);
       }
     },
-    [onComplete],
+    [onComplete, onSubmit],
   );
 
   const handleChange = (index: number, raw: string) => {
@@ -226,7 +237,29 @@ export const OtpInput: React.FC<OtpInputProps> = ({
         )}
       </div>
 
-      {verifying && (
+      {/* Manual submit rejimi: onSubmit berilsa — 6 raqam to'lgach tugma chiqadi */}
+      {onSubmit && (
+        <button
+          type="button"
+          onClick={() => {
+            const code = digits.join('');
+            if (code.length === LENGTH && !code.includes('')) onSubmit(code);
+          }}
+          disabled={verifying || digits.some((d) => !d)}
+          className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-300/60 dark:shadow-indigo-900/50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 text-base"
+        >
+          {verifying ? (
+            <>
+              <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              Tasdiqlanmoqda...
+            </>
+          ) : (
+            submitLabel
+          )}
+        </button>
+      )}
+
+      {verifying && !onSubmit && (
         <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
           <span className="w-4 h-4 border-2 border-indigo-200 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin" />
           Tasdiqlanmoqda...
