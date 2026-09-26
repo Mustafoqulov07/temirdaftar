@@ -91,7 +91,8 @@ export const OtpInput: React.FC<OtpInputProps> = ({
       // Manual submit rejimida avtomatik yuborilmaydi — foydalanuvchi tugmani bosadi
       if (onSubmit) return;
       const code = arr.join('');
-      if (code.length === LENGTH && !code.includes('') && !submittedRef.current) {
+      // E'TIBOR: arr (massiv) tekshiriladi — satrda .includes('') doim true qaytaradi!
+      if (code.length === LENGTH && arr.every((d) => d !== '') && !submittedRef.current) {
         submittedRef.current = true;
         onComplete?.(code);
       }
@@ -243,7 +244,8 @@ export const OtpInput: React.FC<OtpInputProps> = ({
           type="button"
           onClick={() => {
             const code = digits.join('');
-            if (code.length === LENGTH && !code.includes('')) onSubmit(code);
+            // digits massivi tekshiriladi — satrdagi .includes('') doim true bo'ladi
+            if (code.length === LENGTH && digits.every((d) => d !== '')) onSubmit(code);
           }}
           disabled={verifying || digits.some((d) => !d)}
           className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-300/60 dark:shadow-indigo-900/50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 text-base"
