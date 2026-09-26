@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 export class TelegramService implements OnModuleInit, OnModuleDestroy {
   private bot: Telegraf;
   private userStates = new Map<string, string>();
+  private botUsername: string | null = null;
 
   constructor(
     private prisma: PrismaService,
@@ -22,12 +23,33 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     this.setupBot();
   }
 
+  /**
+   * Haqiqiy bot username'ini qaytaradi (getMe orqali, kesh bilan).
+   * OTP havolalari shu username asosida quriladi — qattiq kodlangan
+   * noto'g'ri botga yo'naltirish muammosi shu bilan hal qilinadi.
+   */
+  async getBotUsername(): Promise<string | null> {
+    if (this.botUsername) return this.botUsername;
+    if (!this.bot) return null;
+    try {
+      const me = await this.bot.telegram.getMe();
+      this.botUsername = me.username || null;
+      return this.botUsername;
+    } catch (err) {
+      console.error('getMe orqali bot username olishda xatolik:', err);
+      return null;
+    }
+  }
+
   async onModuleInit() {
     if (this.bot) {
       // Fonda ishga tushiramiz, NestJS ishga tushishini bloklamaslik uchun
       this.bot.launch().catch((err) => {
         console.error('Telegram botni ishga tushirishda xatolik:', err);
       });
+
+      // Bot username'ini oldindan olib qo'yamiz (OTP havolalari uchun)
+      this.getBotUsername();
 
       // 1. Oddiy foydalanuvchilar uchun umumiy buyruqlar
       this.bot.telegram.setMyCommands([

@@ -46,9 +46,10 @@ function hashOtp(phone: string, purpose: OtpPurpose, code: string): string {
   return createHmac('sha256', secret).update(`${phone}:${purpose}:${code}`).digest('hex');
 }
 
-export function buildBotUrl(): string {
-  const username = (process.env.BOT_USERNAME || 'qarzni_uzbot').replace(/^@/, '');
-  return `https://t.me/${username}?start=auth`;
+export function buildBotUrl(username?: string): string {
+  const resolved = (username || process.env.BOT_USERNAME || '').replace(/^@/, '');
+  if (!resolved) return ''; // username noma'lum — frontend standart havola ishlatadi
+  return `https://t.me/${resolved}?start=auth`;
 }
 
 @Injectable()
@@ -168,7 +169,7 @@ export class OtpService {
         purpose,
         expiresAt: new Date(now + OTP_TTL_MS).toISOString(),
         status: 'BOT_NOT_STARTED',
-        botUrl: buildBotUrl(),
+        botUrl: buildBotUrl((await this.telegramService.getBotUsername()) ?? undefined),
       };
     }
 

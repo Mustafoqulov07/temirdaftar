@@ -104,8 +104,11 @@ const BrandPanel: React.FC<{ subtitle: string }> = ({ subtitle }) => (
   </div>
 );
 
-/** Backend javobida botUrl bo'lmasa — standart bot havolasi */
-const buildBotUrlFallback = () => `https://t.me/${(import.meta.env.VITE_BOT_USERNAME || 'qarzni_uzbot').replace(/^@/, '')}?start=auth`;
+/** Backend javobida botUrl bo'lmasa — env'dagi username bilan havola (bo'lmasa bo'sh) */
+const buildBotUrlFallback = () => {
+  const username = (import.meta.env.VITE_BOT_USERNAME || '').replace(/^@/, '');
+  return username ? `https://t.me/${username}?start=auth` : '';
+};
 
 export const Login: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('+998');
