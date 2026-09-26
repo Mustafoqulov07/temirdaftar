@@ -61,13 +61,19 @@ export class OtpService {
     private telegramService: TelegramService,
   ) {}
 
+  /** Har bir kod o'z maqsad nomi bilan yuboriladi — foydalanuvchi chalkashmaydi */
   private buildMessage(purpose: OtpPurpose, code: string): string {
-    const tag = `[${purpose}]`;
+    const meta: Record<OtpPurpose, { title: string; emoji: string }> = {
+      REGISTER: { title: 'RO‘YXATDAN O‘TISH UCHUN', emoji: '📝' },
+      LOGIN: { title: 'TIZIMGA KIRISH (LOGIN) UCHUN', emoji: '🔑' },
+      PASSWORD_RESET: { title: 'PAROLNI O‘ZGARTIRISH UCHUN', emoji: '🔒' },
+    };
+    const { title, emoji } = meta[purpose];
     return (
-      `${tag}\n\n` +
+      `${emoji} *Temir Daftar* — ${title} kod\n\n` +
       `Tasdiqlash kodingiz: *${code}*\n` +
-      `Bu kod 2 daqiqa ichida amal qiladi.\n\n` +
-      `Agar siz bu so'rovni yubormagan bo'lsangiz, e'tibor bermang.`
+      `⏳ Bu kod 2 daqiqa ichida amal qiladi.\n\n` +
+      `Agar siz bu so‘rovni yubormagan bo‘lsangiz, e‘tibor bermang.`
     );
   }
 
@@ -112,6 +118,22 @@ export class OtpService {
     const user = await this.prisma.user.findUnique({
       where: { phoneNumber: phone },
     });
+
+    // Maqsadga qarab dastlabki tekshiruvlar:
+    // - REGISTER: foydalanuvchi allaqachon mavjud bo'lsa ma'no yo'q
+    // - LOGIN / PASSWORD_RESET: foydalanuvchi mavjud bo'lishi shart
+    if (purpose === 'REGISTER' && user) {
+      const err: any = new Error(
+        'Bu telefon raqam allaqachon ro‘yxatdan o‘tgan. Tizimga kirishingiz mumkin.',
+      );
+      err.status = 409;
+      throw err;
+    }
+    if (purpose !== 'REGISTER' && !user) {
+      const err: any = new Error('Ushbu telefon raqamli foydalanuvchi topilmadi.');
+      err.status = 404;
+      throw err;
+    }
 
     let telegramId = user?.telegramId || null;
 
@@ -167,10 +189,10 @@ export class OtpService {
     });
     this.lastSentAtByPhone.set(`${phone}:${purpose}`, now);
 
-    const sent = await this.telegramService.sendMessage(telegramId, this.buildMessage(purpose, code));
+    const sent = await this.telegramService.sendMessage(telegramId, this.buildMessage(purpose, code), 'Markdown');
 
     if (!sent) {
-      // Yuborib bo'lmadi — entry'ni o'chirib, xato qaytaramiz
+      // Yuborib bo'lmadi — xato qaytaramiz, foydalanuvchi 45s cooldown'dan keyin qayta urinadi
       this.entries.delete(otpId);
       const err: any = new Error('Kodni Telegram orqali yuborib boʻlmadi. Keyinroq qayta urinib koʻring.');
       err.status = 502;
@@ -187,23 +209,28 @@ export class OtpService {
   }
 
   /**
-   * Bot /start qilganda — pending OTP'ni topib darhol yuboradi
-   * (foydalanuvchi saytda "Resend" bosmaydi).
-   * Xavfsizlik uchun faqat shu Telegram hisobiga bog'langan telefon raqamlarga yuboradi.
+   * Bot /start + kontakt yuborganda — pending OTP'ni topib DARHOL yuboradi.
+   * Qaror: foydalanuvchi qayta "yuborish" tugmasini bosishi SHART EMAS —
+   * start + kontakt bajarilishi bilan eng so'nggi pending kod avtomatik jo'natiladi.
+   * Xavfsizlik uchun faqat shu Telegram hisobiga bog'langan telefon raqamga yuboradi.
    */
   async deliverPendingOtpForTelegram(telegramId: string, expectedPhone?: string): Promise<void> {
     const now = Date.now();
+    let latest: OtpEntry | null = null;
     for (const entry of this.entries.values()) {
       if (entry.telegramId !== null || entry.expiresAt <= now) continue;
       if (expectedPhone && entry.phone !== expectedPhone) continue;
-
-      entry.telegramId = telegramId;
-      // Kod xavfsizlik uchun hash'da saqlanadi — qayta yuborish uchun yangi kod generatsiya qilamiz
-      const newCode = randomInt(100000, 999999).toString();
-      entry.codeHash = hashOtp(entry.phone, entry.purpose, newCode);
-      entry.expiresAt = Date.now() + OTP_TTL_MS;
-      await this.telegramService.sendMessage(telegramId, this.buildMessage(entry.purpose, newCode));
+      if (!latest || entry.createdAt > latest.createdAt) latest = entry;
     }
+
+    if (!latest) return;
+
+    latest.telegramId = telegramId;
+    // Kod hash'da saqlanadi — yangi kod generatsiya qilib, muddatini yangilaymiz
+    const newCode = randomInt(100000, 999999).toString();
+    latest.codeHash = hashOtp(latest.phone, latest.purpose, newCode);
+    latest.expiresAt = Date.now() + OTP_TTL_MS;
+    await this.telegramService.sendMessage(telegramId, this.buildMessage(latest.purpose, newCode), 'Markdown');
   }
 
   verifyOtp(otpId: string, code: string): {

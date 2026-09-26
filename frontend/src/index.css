@@ -22,6 +22,10 @@
   border-radius: 3px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
@@ -51,4 +55,151 @@
 
 .animate-slide-in {
   animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================================
+   Auth sahifalar uchun kreativ effektlar
+   ============================================================ */
+
+/* Kirish animatsiyasi — forma yumshoq ko'tarilib keladi */
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-auth-rise {
+  animation: auth-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Kartochka chizig'i yugurib o'tadigan yorug'lik (shine) */
+@keyframes card-shine {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  55%,
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+.animate-card-shine {
+  animation: card-shine 5.5s ease-in-out infinite;
+}
+
+/* Suzuvchi orbalgan sharlar (bokeh) */
+@keyframes orb-float-1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(36px, -30px) scale(1.12);
+  }
+  66% {
+    transform: translate(-22px, 22px) scale(0.94);
+  }
+}
+@keyframes orb-float-2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.05);
+  }
+  40% {
+    transform: translate(-42px, 26px) scale(0.9);
+  }
+  70% {
+    transform: translate(24px, -34px) scale(1.15);
+  }
+}
+@keyframes orb-float-3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(0.95);
+  }
+  30% {
+    transform: translate(-30px, -24px) scale(1.1);
+  }
+  75% {
+    transform: translate(30px, 18px) scale(0.92);
+  }
+}
+.animate-orb-1 {
+  animation: orb-float-1 16s ease-in-out infinite;
+}
+.animate-orb-2 {
+  animation: orb-float-2 21s ease-in-out infinite;
+}
+.animate-orb-3 {
+  animation: orb-float-3 26s ease-in-out infinite;
+}
+
+/* Yorug'/qorong'u faza almashinuvi — butun sahifa yumshoq o'tadi */
+.auth-theme-transition,
+.auth-theme-transition * {
+  transition:
+    background-color 0.6s ease,
+    border-color 0.6s ease,
+    color 0.6s ease;
+}
+
+/* Gradient matn uchun yengil siljish */
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+.animate-gradient {
+  background-size: 220% 220%;
+  animation: gradient-shift 7s ease infinite;
+}
+
+/* Yulduzlar (faqat dark faza) */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.15);
+  }
+}
+.animate-twinkle {
+  animation: twinkle 3.4s ease-in-out infinite;
+}
+
+/* Chart chizig'i chizilib chiqish effekti */
+@keyframes dash-draw {
+  from {
+    stroke-dashoffset: 1200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.animate-dash-draw {
+  stroke-dasharray: 1200;
+  animation: dash-draw 2.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-auth-rise,
+  .animate-card-shine,
+  .animate-orb-1,
+  .animate-orb-2,
+  .animate-orb-3,
+  .animate-gradient,
+  .animate-twinkle,
+  .animate-dash-draw {
+    animation: none;
+  }
 }

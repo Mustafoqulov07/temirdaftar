@@ -243,6 +243,11 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
             `Ro'yxatdan muvaffaqiyatli o'tdingiz va siz uchun yangi do'kon yaratildi! 🚀\n\nEndi quyidagi tugma orqali qarz daftaringizni ochishingiz mumkin.`,
             this.getMainMenuKeyboard()
           );
+
+          // Saytda REGISTER OTP kutilayotgan bo'lishi mumkin — yetkazib beramiz
+          if (this.otpService) {
+            await this.otpService.deliverPendingOtpForTelegram(telegramId, phoneNumber);
+          }
         }
       } catch (error) {
         console.error('Kontaktni qayta ishlashda xatolik:', error);
@@ -380,16 +385,26 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async sendMessage(telegramId: string, text: string): Promise<boolean> {
+  async sendMessage(telegramId: string, text: string, parseMode?: 'Markdown' | 'HTML'): Promise<boolean> {
     if (!this.bot) {
       console.warn('Telegram bot is not initialized. Cannot send message.');
       return false;
     }
     try {
-      await this.bot.telegram.sendMessage(telegramId, text);
+      await this.bot.telegram.sendMessage(telegramId, text, parseMode ? { parse_mode: parseMode } : undefined);
       return true;
     } catch (error) {
       console.error(`Error sending telegram message to ${telegramId}:`, error);
+      // Markdown parse xatosi bo'lsa — formatlashsiz qayta urinamiz (kod yetib borishi muhim)
+      if (parseMode) {
+        try {
+          const plain = text.replace(/[*_`\[\]]/g, '');
+          await this.bot.telegram.sendMessage(telegramId, plain);
+          return true;
+        } catch {
+          return false;
+        }
+      }
       return false;
     }
   }

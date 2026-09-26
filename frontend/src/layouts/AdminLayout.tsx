@@ -45,20 +45,20 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
             {/* Logo */}
             <Link to="/admin" className="flex items-center space-x-3.5 group">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-amber-500/25 group-hover:scale-105 transition-transform duration-300">
+                <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 via-violet-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-300">
                   <SparklesIcon className="w-5 h-5 text-white" />
                 </div>
                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
                 </span>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-black tracking-tight text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">
+                  <span className="text-lg font-black tracking-tight text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
                     TEMIR DAFTAR
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-extrabold tracking-wider uppercase bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-extrabold tracking-wider uppercase bg-indigo-500/10 text-indigo-500 dark:text-indigo-300 border border-indigo-500/30">
                     SUPER ADMIN
                   </span>
                 </div>
@@ -99,7 +99,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
             {/* Admin Profile Chip */}
             <div className="hidden sm:flex items-center space-x-2.5 bg-gray-50 border border-gray-200 dark:bg-slate-900/90 dark:border-slate-800 px-3.5 py-1.5 rounded-xl">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-xs font-black text-white shadow-inner">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-xs font-black text-white shadow-inner">
                 👑
               </div>
               <div className="flex flex-col text-left">

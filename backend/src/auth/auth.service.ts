@@ -530,12 +530,18 @@ export class AuthService {
       throw new NotFoundException('Foydalanuvchi topilmadi');
     }
 
-    if (!user.resetCode || user.resetCode !== code) {
-      throw new ConflictException('Tasdiqlash kodi notoʻgʻri');
-    }
+    // OTP moduli orqali tasdiqlangan holat: kod allaqachon Telegram OTP'da tekshirilgan
+    // ('__OTP_VERIFIED__' maxsus belgisi bilan keladi)
+    const otpVerified = code === '__OTP_VERIFIED__';
 
-    if (user.resetCodeExpiresAt && user.resetCodeExpiresAt < new Date()) {
-      throw new ConflictException('Tasdiqlash kodining muddati tugagan. Iltimos, yangidan soʻrang.');
+    if (!otpVerified) {
+      if (!user.resetCode || user.resetCode !== code) {
+        throw new ConflictException('Tasdiqlash kodi notoʻgʻri');
+      }
+
+      if (user.resetCodeExpiresAt && user.resetCodeExpiresAt < new Date()) {
+        throw new ConflictException('Tasdiqlash kodining muddati tugagan. Iltimos, yangidan soʻrang.');
+      }
     }
 
     if (newPassword.length < 6) {

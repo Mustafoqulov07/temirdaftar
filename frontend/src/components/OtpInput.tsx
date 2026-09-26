@@ -22,13 +22,13 @@ interface OtpInputProps {
 const PURPOSE_TEXT: Record<OtpInputProps['purpose'], string> = {
   REGISTER: 'Roʻyxatdan oʻtish uchun Telegram\'ga yuborilgan kodni kiriting.',
   LOGIN: 'Tizimga kirish uchun Telegram\'ga yuborilgan kodni kiriting.',
-  PASSWORD_RESET: 'Parolni tiklash uchun Telegram\'ga yuborilgan kodni kiriting.',
+  PASSWORD_RESET: 'Parolni oʻzgartirish uchun Telegram\'ga yuborilgan kodni kiriting.',
 };
 
 const PURPOSE_LABEL: Record<OtpInputProps['purpose'], string> = {
-  REGISTER: 'REGISTER',
-  LOGIN: 'LOGIN',
-  PASSWORD_RESET: 'PASSWORD_RESET',
+  REGISTER: 'ROʻYXATDAN OʻTISH UCHUN',
+  LOGIN: 'KIRISH UCHUN',
+  PASSWORD_RESET: 'PAROLNI OʻZGARTIRISH UCHUN',
 };
 
 export const OtpInput: React.FC<OtpInputProps> = ({
@@ -146,6 +146,8 @@ export const OtpInput: React.FC<OtpInputProps> = ({
   };
 
   const expired = timeLeft === 0;
+  // expiresAt yo'q bo'lsa (masalan pending/BOT_NOT_STARTED holatda) countdown ko'rsatilmaydi
+  // va inputlar bloklanmaydi — foydalanuvchi keyin kelgan kodni kirita oladi
   const hasError = Boolean(error);
 
   return (
@@ -187,7 +189,7 @@ export const OtpInput: React.FC<OtpInputProps> = ({
             maxLength={1}
             aria-label={`${i + 1}-xonali raqam`}
             value={d}
-            disabled={verifying || expired}
+            disabled={verifying}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             onFocus={(e) => e.target.select()}
