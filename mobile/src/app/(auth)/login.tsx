@@ -117,6 +117,27 @@ export default function LoginScreen() {
                 <Text style={styles.buttonText}>Kirish</Text>
               )}
             </TouchableOpacity>
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>yoki</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity
+              style={styles.telegramBtn}
+              onPress={() => router.push('/(auth)/telegram-login')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.telegramBtnText}>✈️ Telegram orqali kirish</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.forgotBtn}
+              onPress={() => router.push('/(auth)/forgot-password')}
+            >
+              <Text style={styles.forgotBtnText}>Parolni tiklash?</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
@@ -226,10 +247,47 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: '600',
+    marginHorizontal: 10,
+  },
+  telegramBtn: {
+    backgroundColor: '#229ED9',
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  telegramBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  forgotBtn: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  forgotBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4F46E5',
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: 20,
   },
   footerText: {
     fontSize: 14,

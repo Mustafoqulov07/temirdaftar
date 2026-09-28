@@ -1,7 +1,10 @@
 import { Tabs } from 'expo-router';
 import { Platform, type ColorValue } from 'react-native';
+import { useAuth } from '@/context/AuthContext';
 
 export default function TabsLayout() {
+  const { isSuperAdmin } = useAuth();
+
   return (
     <Tabs
       screenOptions={{
@@ -47,6 +50,21 @@ export default function TabsLayout() {
           ),
         }}
       />
+      {/* Faqat SUPER_ADMIN uchun — oddiy foydalanuvchidan butunlay yashiriladi */}
+      {isSuperAdmin ? (
+        <Tabs.Screen
+          name="admin"
+          options={{
+            title: 'Admin',
+            tabBarLabel: 'Admin',
+            tabBarIcon: ({ color, size }) => (
+              <TabIcon name="shield" color={color} size={size} />
+            ),
+          }}
+        />
+      ) : (
+        <Tabs.Screen name="admin" options={{ href: null }} />
+      )}
       <Tabs.Screen
         name="profile"
         options={{
@@ -66,6 +84,7 @@ function TabIcon({ name, color, size }: { name: string; color: ColorValue; size:
     home: '🏠',
     people: '👥',
     person: '👤',
+    shield: '🛡️',
   };
 
   const { Text } = require('react-native');

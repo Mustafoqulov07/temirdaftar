@@ -11,12 +11,14 @@ import {
   ActivityIndicator,
   Linking,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import OtpCodeInput from '@/components/OtpCodeInput';
 import { formatPhoneInput } from '@/utils/format';
-import api from '@/services/api';
+
+type Step = 'PHONE' | 'CODE';
 
 interface OtpState {
   otpId: string;
@@ -25,23 +27,19 @@ interface OtpState {
   botUrl?: string;
 }
 
-export default function RegisterScreen() {
-  const [fullName, setFullName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('+998');
-  const [password, setPassword] = useState('');
-  const [storeName, setStoreName] = useState('');
+export default function TelegramLoginScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{ phone?: string }>();
+  const { loginByOtp } = useAuth();
 
-  // OTP bosqichi
-  const [otpStep, setOtpStep] = useState(false);
+  const [step, setStep] = useState<Step>(params.phone ? 'PHONE' : 'PHONE');
+  const [phone, setPhone] = useState(params.phone ? String(params.phone) : '+998');
   const [otp, setOtp] = useState<OtpState | null>(null);
-  const [resendTimer, setResendTimer] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
-  const { register } = useAuth();
+  const [resendTimer, setResendTimer] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startCooldown = useCallback(() => {
     setResendTimer(45);
@@ -58,49 +56,26 @@ export default function RegisterScreen() {
     }, 1000);
   }, []);
 
-  const handlePhoneChange = (text: string) => {
-    setPhoneNumber(formatPhoneInput(text));
-  };
-
-  const requestOtp = useCallback(async () => {
+  const handleRequestCode = async () => {
     setError('');
+    if (phone.length !== 13) {
+      setError('Telefon raqam notoʻgʻri shaklda (+998XXXXXXXXX)');
+      return;
+    }
     setLoading(true);
     try {
       const res = await api.post<OtpState>('/otp/request', {
-        phoneNumber,
-        purpose: 'REGISTER',
+        phoneNumber: phone,
+        purpose: 'LOGIN',
       });
       setOtp(res);
-      setOtpStep(true);
+      setStep('CODE');
       startCooldown();
     } catch (err: any) {
       setError(err.data?.message || err.message || 'Kod yuborishda xatolik yuz berdi');
     } finally {
       setLoading(false);
     }
-  }, [phoneNumber, startCooldown]);
-
-  const handleSubmitForm = async () => {
-    setError('');
-    if (!fullName.trim()) {
-      setError('Ismingizni kiriting');
-      return;
-    }
-    if (phoneNumber.length !== 13) {
-      setError('Telefon raqam notoʻgʻri shaklda (+998XXXXXXXXX)');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Parol kamida 6 ta belgidan iborat boʻlishi kerak');
-      return;
-    }
-    if (!storeName.trim()) {
-      setError('Doʻkon nomini kiriting');
-      return;
-    }
-
-    // Web'dagi kabi: avval OTP so'raymiz, kod tasdiqlangach ro'yxatdan o'tamiz
-    await requestOtp();
   };
 
   const handleVerify = async (code: string) => {
@@ -108,17 +83,16 @@ export default function RegisterScreen() {
     setError('');
     setVerifying(true);
     try {
-      await api.post('/otp/verify', { otpId: otp.otpId, code });
-      // Kod tasdiqlandi — endi ro'yxatdan o'tamiz (backend OTP'ni tekshirgan,
-      // REGISTER ham hozircha to'g'ridan-to'g'ri qabul qiladi)
-      await register({
-        fullName: fullName.trim(),
-        phoneNumber,
-        password,
-        storeName: storeName.trim(),
-      });
+      // LOGIN maqsadida backend kod to'g'ri bo'lsa tokenlarni qaytaradi
+      const res = await api.post<{
+        verified: boolean;
+        token?: string;
+        accessToken?: string;
+        refreshToken?: string;
+      }>('/otp/verify', { otpId: otp.otpId, code });
+      await loginByOtp(res);
     } catch (err: any) {
-      setError(err.data?.message || err.message || 'Kod notoʻgʻri yoki roʻyxatdan oʻtishda xatolik');
+      setError(err.data?.message || err.message || 'Kod notoʻgʻri');
     } finally {
       setVerifying(false);
     }
@@ -126,7 +100,20 @@ export default function RegisterScreen() {
 
   const handleResend = async () => {
     if (resendTimer > 0) return;
-    await requestOtp();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await api.post<OtpState>('/otp/request', {
+        phoneNumber: phone,
+        purpose: 'LOGIN',
+      });
+      setOtp(res);
+      startCooldown();
+    } catch (err: any) {
+      setError(err.data?.message || err.message || 'Qayta yuborishda xatolik');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openBot = () => {
@@ -144,17 +131,21 @@ export default function RegisterScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Text style={styles.backBtnText}>← Orqaga</Text>
+          </TouchableOpacity>
+
           <View style={styles.logoContainer}>
             <View style={styles.logo}>
-              <Text style={styles.logoText}>T</Text>
+              <Text style={styles.logoText}>✈️</Text>
             </View>
             <Text style={styles.title}>
-              {otpStep ? 'Tasdiqlash kodi' : 'Roʻyxatdan oʻtish'}
+              {step === 'PHONE' ? 'Telegram orqali kirish' : 'Kodni kiriting'}
             </Text>
             <Text style={styles.subtitle}>
-              {otpStep
-                ? `${phoneNumber} uchun Telegramʼga kod yuborildi`
-                : 'Yangi doʻkon hisobi yarating'}
+              {step === 'PHONE'
+                ? 'Raqamingizga Telegram bot orqali kod yuboriladi'
+                : `${phone} raqamiga kod yuborildi`}
             </Text>
           </View>
 
@@ -164,67 +155,38 @@ export default function RegisterScreen() {
             </View>
           ) : null}
 
-          {!otpStep ? (
+          {step === 'PHONE' ? (
             <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Toʻliq ism</Text>
-                <TextInput
-                  style={styles.input}
-                  value={fullName}
-                  onChangeText={setFullName}
-                  placeholder="Ism Familiya"
-                  placeholderTextColor="#9CA3AF"
-                  autoCapitalize="words"
-                />
-              </View>
-
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Telefon raqam</Text>
                 <TextInput
                   style={styles.input}
-                  value={phoneNumber}
-                  onChangeText={handlePhoneChange}
+                  value={phone}
+                  onChangeText={(t) => setPhone(formatPhoneInput(t))}
                   keyboardType="phone-pad"
                   placeholder="+998901234567"
                   placeholderTextColor="#9CA3AF"
                 />
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Parol (kamida 6 ta belgi)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  placeholder="••••••"
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Doʻkon nomi</Text>
-                <TextInput
-                  style={styles.input}
-                  value={storeName}
-                  onChangeText={setStoreName}
-                  placeholder="Masalan: Oltin Bozor"
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-
               <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleSubmitForm}
+                onPress={handleRequestCode}
                 disabled={loading}
                 activeOpacity={0.8}
               >
                 {loading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.buttonText}>Davom etish</Text>
+                  <Text style={styles.buttonText}>Kod yuborish</Text>
                 )}
               </TouchableOpacity>
+
+              <Text style={styles.hint}>
+                💬 Kod “Temir Daftar” Telegram botiga yuboriladi. Agar botni
+                ishga tushirmagan boʻlsangiz, avval /start bosing va telefon
+                raqamingizni yuboring.
+              </Text>
             </View>
           ) : (
             <View style={styles.form}>
@@ -240,31 +202,30 @@ export default function RegisterScreen() {
                 </View>
               )}
 
+              {otp?.status !== 'BOT_NOT_STARTED' && (
+                <View style={styles.sentNotice}>
+                  <Text style={styles.sentNoticeText}>
+                    ✅ Kod Telegramʼga yuborildi. Tasdiqlash uchun kiriting:
+                  </Text>
+                </View>
+              )}
+
               <OtpCodeInput
                 key={otp?.otpId || 'otp'}
-                purpose="REGISTER"
+                purpose="LOGIN"
                 expiresAt={otp?.expiresAt}
                 verifying={verifying}
                 error={error}
-                submitLabel="Roʻyxatdan oʻtish"
+                submitLabel="Kirish"
                 onSubmit={handleVerify}
                 onResend={handleResend}
                 resendCooldownSeconds={resendTimer > 0 ? resendTimer : 45}
                 onBack={() => {
-                  setOtpStep(false);
+                  setStep('PHONE');
                   setOtp(null);
                   setError('');
                 }}
               />
-            </View>
-          )}
-
-          {!otpStep && (
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Hisobingiz bormi? </Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-                <Text style={styles.footerLink}>Kirish</Text>
-              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -283,11 +244,20 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 24,
+    paddingVertical: 32,
+  },
+  backBtn: {
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  backBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#4F46E5',
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
   },
   logo: {
     width: 52,
@@ -296,17 +266,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#4F46E5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   logoText: {
-    color: '#fff',
-    fontSize: 26,
-    fontWeight: '900',
+    fontSize: 24,
   },
   title: {
     fontSize: 22,
     fontWeight: '700',
     color: '#111827',
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
@@ -320,7 +289,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#EF4444',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   errorText: {
     color: '#B91C1C',
@@ -328,10 +297,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   form: {
-    gap: 14,
+    gap: 8,
   },
   inputGroup: {
     gap: 6,
+    marginBottom: 8,
   },
   label: {
     fontSize: 14,
@@ -353,12 +323,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-    marginTop: 4,
+    marginTop: 8,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -368,12 +333,33 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
+  hint: {
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 19,
+    textAlign: 'center',
+    marginTop: 12,
+  },
+  sentNotice: {
+    backgroundColor: '#ECFDF5',
+    borderLeftWidth: 4,
+    borderLeftColor: '#10B981',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  sentNoticeText: {
+    color: '#047857',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   botNotice: {
     backgroundColor: '#FFFBEB',
     borderLeftWidth: 4,
     borderLeftColor: '#F59E0B',
     padding: 12,
     borderRadius: 8,
+    marginBottom: 8,
   },
   botNoticeText: {
     color: '#92400E',
@@ -392,19 +378,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '700',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  footerLink: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#4F46E5',
   },
 });

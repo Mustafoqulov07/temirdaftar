@@ -22,7 +22,12 @@ interface AuthContextType {
   user: User | null;
   store: Store | null;
   loading: boolean;
+  /** Foydalanuvchi roli: 'USER' | 'SUPER_ADMIN' */
+  role: string;
+  isSuperAdmin: boolean;
   login: (phoneNumber: string, password: string) => Promise<void>;
+  /** OTP login javobini (token) qabul qilib sessiyani boshlaydi */
+  loginByOtp: (response: { token?: string; accessToken?: string; refreshToken?: string }) => Promise<void>;
   register: (data: {
     fullName: string;
     phoneNumber: string;
@@ -91,6 +96,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadAuth();
   }, []);
 
+  /**
+   * Login/OTP javobidan kelgan tokenlarni saqlash (mobil ilova o'zi saqlashi shart).
+   * OTP login ham shu funksiyadan foydalanadi.
+   */
   const persistSession = useCallback(
     async (userVal: User | null, storeVal: Store | null) => {
       setUser(userVal);
@@ -109,24 +118,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     []
   );
 
-  const login = useCallback(
-    async (phoneNumber: string, password: string) => {
-      // Backend faqat token qaytaradi — user/store'ni /auth/profile orqali olamiz
-      const response = await api.post<{
-        token?: string;
-        accessToken?: string;
-        refreshToken?: string;
-      }>('/auth/login', {
-        phoneNumber,
-        password,
-      });
-
+  const applyAuthTokens = useCallback(
+    async (response: { token?: string; accessToken?: string; refreshToken?: string }) => {
       const accessToken = response?.token || response?.accessToken;
       if (!accessToken) {
         throw new Error('Tizimga kirishda xatolik yuz berdi');
       }
-
-      // Token saqlanishi SHART — keyingi /auth/profile so'rovi undan foydalanadi
       await saveTokens(accessToken, response?.refreshToken);
 
       await persistSession(null, null);
@@ -134,6 +131,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await persistSession(profile.user, profile.store || null);
     },
     [persistSession]
+  );
+
+  const login = useCallback(
+    async (phoneNumber: string, password: string) => {
+      const response = await api.post<{
+        token?: string;
+        accessToken?: string;
+        refreshToken?: string;
+      }>('/auth/login', { phoneNumber, password });
+      await applyAuthTokens(response);
+    },
+    [applyAuthTokens]
+  );
+
+  /** Telegram OTP orqali parolsiz kirish (web'dagi kabi LOGIN purpose) */
+  const loginByOtp = useCallback(
+    async (response: { token?: string; accessToken?: string; refreshToken?: string }) => {
+      await applyAuthTokens(response);
+    },
+    [applyAuthTokens]
   );
 
   const register = useCallback(
@@ -148,20 +165,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         accessToken?: string;
         refreshToken?: string;
       }>('/auth/register', data);
-
-      const accessToken = response?.token || response?.accessToken;
-      if (!accessToken) {
-        throw new Error('Roʻyxatdan oʻtishda xatolik yuz berdi');
-      }
-
-      // Token saqlanishi SHART — keyingi /auth/profile so'rovi undan foydalanadi
-      await saveTokens(accessToken, response?.refreshToken);
-
-      await persistSession(null, null);
-      const profile = await api.get<{ user: User; store: Store | null }>('/auth/profile');
-      await persistSession(profile.user, profile.store || null);
+      await applyAuthTokens(response);
     },
-    [persistSession]
+    [applyAuthTokens]
   );
 
   const logout = useCallback(async () => {
@@ -186,7 +192,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         store,
         loading,
+        role: user?.role || 'USER',
+        isSuperAdmin: (user?.role || '') === 'SUPER_ADMIN',
         login,
+        loginByOtp,
         register,
         logout,
         refreshProfile,
