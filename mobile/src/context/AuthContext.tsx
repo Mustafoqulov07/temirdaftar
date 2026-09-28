@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api, { setUnauthorizedHandler } from '@/services/api';
+import api, { setUnauthorizedHandler, saveTokens, clearAuth } from '@/services/api';
 
 interface User {
   id: string;
@@ -112,14 +112,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = useCallback(
     async (phoneNumber: string, password: string) => {
       // Backend faqat token qaytaradi — user/store'ni /auth/profile orqali olamiz
-      const response = await api.post<{ token?: string }>('/auth/login', {
+      const response = await api.post<{
+        token?: string;
+        accessToken?: string;
+        refreshToken?: string;
+      }>('/auth/login', {
         phoneNumber,
         password,
       });
 
-      if (!response?.token) {
+      const accessToken = response?.token || response?.accessToken;
+      if (!accessToken) {
         throw new Error('Tizimga kirishda xatolik yuz berdi');
       }
+
+      // Token saqlanishi SHART — keyingi /auth/profile so'rovi undan foydalanadi
+      await saveTokens(accessToken, response?.refreshToken);
 
       await persistSession(null, null);
       const profile = await api.get<{ user: User; store: Store | null }>('/auth/profile');
@@ -135,11 +143,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       password: string;
       storeName: string;
     }) => {
-      const response = await api.post<{ token?: string }>('/auth/register', data);
+      const response = await api.post<{
+        token?: string;
+        accessToken?: string;
+        refreshToken?: string;
+      }>('/auth/register', data);
 
-      if (!response?.token) {
+      const accessToken = response?.token || response?.accessToken;
+      if (!accessToken) {
         throw new Error('Roʻyxatdan oʻtishda xatolik yuz berdi');
       }
+
+      // Token saqlanishi SHART — keyingi /auth/profile so'rovi undan foydalanadi
+      await saveTokens(accessToken, response?.refreshToken);
 
       await persistSession(null, null);
       const profile = await api.get<{ user: User; store: Store | null }>('/auth/profile');
@@ -152,6 +168,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Backend sessiyasini yopishga urinamiz — xato bo'lsa ham davom etamiz
     api.post('/auth/logout', {}).catch(() => {});
     setUnauthorizedHandler(null);
+    // AsyncStorage'dagi token/user/store'ni ham tozalash — aks holda sessiya "tiriladi"
+    await clearAuth();
     setUser(null);
     setStore(null);
   }, []);
