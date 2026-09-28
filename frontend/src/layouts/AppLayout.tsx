@@ -105,7 +105,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 z-30 h-16 flex justify-around items-center px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 z-30 flex justify-around items-center px-2 pb-safe" style={{ height: "calc(4rem + env(safe-area-inset-bottom, 0px))" }}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);

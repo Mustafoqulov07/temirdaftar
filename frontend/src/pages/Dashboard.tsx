@@ -259,15 +259,15 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Welcome Panel */}
-      <div className="flex items-center justify-between">
+      {/* Top Welcome Panel — mobil: ustma-ust, desktop: yonma-yon */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">Dashboard</h1>
           <p className="text-sm text-gray-500 dark:text-slate-400">Doʻkoningizning joriy holati va hisob-kitoblar</p>
         </div>
         <button
           onClick={handleRefresh}
-          className="flex items-center space-x-1.5 px-3.5 py-2 bg-white dark:bg-slate-900 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-200 shadow-sm"
+          className="flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-white dark:bg-slate-900 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all duration-200 shadow-sm w-full sm:w-auto"
         >
           <ArrowPathIcon className={`w-4 h-4 ${refreshing ? 'animate-spin text-indigo-600' : 'text-gray-500'}`} />
           <span>Yangilash</span>
@@ -305,52 +305,52 @@ export const Dashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Metrics Cards Grid */}
+      {/* Metrics Cards Grid — 2 ustun, katta summalar sig'ishi uchun */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jami mijozlar</span>
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col justify-between min-w-0">
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Jami mijozlar</span>
           <div className="flex items-baseline mt-2">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">{metrics?.totalCustomers}</span>
+            <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{metrics?.totalCustomers}</span>
             <span className="text-xs font-medium text-gray-400 ml-1">ta</span>
           </div>
           <UsersIcon className="w-5 h-5 text-gray-400 mt-2 self-end" />
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jami qarzdorlik</span>
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col justify-between min-w-0">
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Jami qarzdorlik</span>
           <div className="mt-2">
-            <span className="text-xl font-bold text-red-600 truncate block">{formatMoney(metrics?.totalDebtSum || 0)}</span>
+            <span className="text-base sm:text-xl font-bold text-red-600 truncate block" title={formatMoney(metrics?.totalDebtSum || 0)}>{formatMoney(metrics?.totalDebtSum || 0)}</span>
           </div>
           <ExclamationCircleIcon className="w-5 h-5 text-red-400 mt-2 self-end" />
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between col-span-2 lg:col-span-1">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bugun tushgan toʻlovlar</span>
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col justify-between col-span-2 lg:col-span-1">
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Bugun tushgan toʻlovlar</span>
           <div className="mt-2">
-            <span className="text-xl font-bold text-emerald-600 truncate block">{formatMoney(metrics?.todayPaymentsSum || 0)}</span>
+            <span className="text-base sm:text-xl font-bold text-emerald-600 truncate block" title={formatMoney(metrics?.todayPaymentsSum || 0)}>{formatMoney(metrics?.todayPaymentsSum || 0)}</span>
           </div>
           <BanknotesIcon className="w-5 h-5 text-emerald-400 mt-2 self-end" />
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Muddati oʻtgan</span>
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col justify-between min-w-0">
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Muddati oʻtgan</span>
           <div className="mt-2">
-            <span className="text-xl font-bold text-rose-700 truncate block">{formatMoney(metrics?.overdueDebtsSum || 0)}</span>
+            <span className="text-base sm:text-xl font-bold text-rose-700 truncate block" title={formatMoney(metrics?.overdueDebtsSum || 0)}>{formatMoney(metrics?.overdueDebtsSum || 0)}</span>
           </div>
           <ExclamationCircleIcon className="w-5 h-5 text-rose-500 mt-2 self-end" />
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bugun kutilayotgan</span>
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col justify-between min-w-0">
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Bugun kutilayotgan</span>
           <div className="mt-2">
-            <span className="text-xl font-bold text-amber-600 truncate block">{formatMoney(metrics?.todayDebtsSum || 0)}</span>
+            <span className="text-base sm:text-xl font-bold text-amber-600 truncate block" title={formatMoney(metrics?.todayDebtsSum || 0)}>{formatMoney(metrics?.todayDebtsSum || 0)}</span>
           </div>
           <CalendarIcon className="w-5 h-5 text-amber-400 mt-2 self-end" />
         </div>
       </div>
 
       {/* 7 kunlik tendensiya grafigi */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">7 kunlik tendensiya</h2>
@@ -441,10 +441,10 @@ export const Dashboard: React.FC = () => {
 
       {/* -------------------- MODALS -------------------- */}
 
-      {/* Customer Modal */}
+      {/* Customer Modal — mobil: pastdan chiqadigan sheet, desktop: markazda */}
       {customerModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Yangi mijoz qoʻshish</h3>
 
             {customerModalError && (
@@ -515,10 +515,10 @@ export const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Debt Modal */}
+      {/* Debt Modal — mobil: pastdan chiqadigan sheet, scroll bilan */}
       {debtModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Yangi qarz yozish</h3>
             <form onSubmit={handleAddDebtSubmit} className="space-y-4">
               <div>
@@ -615,10 +615,10 @@ export const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Payment Modal */}
+      {/* Payment Modal — mobil: pastdan chiqadigan sheet */}
       {paymentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Toʻlov qabul qilish</h3>
             <form onSubmit={handleAddPaymentSubmit} className="space-y-4">
               <div>

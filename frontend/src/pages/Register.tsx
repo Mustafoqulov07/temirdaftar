@@ -258,7 +258,7 @@ export const Register: React.FC = () => {
       <BrandPanel />
 
       {/* O'ng tomon — forma */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 relative z-10">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-10 relative z-10">
         <div className="w-full max-w-md">
           {/* Mobil logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 animate-auth-rise">
@@ -268,7 +268,7 @@ export const Register: React.FC = () => {
             <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Temir Daftar</span>
           </div>
 
-          <div className="animate-auth-rise relative bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-3xl shadow-2xl shadow-indigo-200/50 dark:shadow-black/60 border border-white/60 dark:border-slate-800 p-8 sm:p-10 overflow-hidden">
+          <div className="animate-auth-rise relative bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-3xl shadow-2xl shadow-indigo-200/50 dark:shadow-black/60 border border-white/60 dark:border-slate-800 p-5 sm:p-10 overflow-hidden">
             {/* Yugurib o'tadigan yorug'lik chizig'i */}
             <div className="pointer-events-none absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-transparent via-indigo-400/10 dark:via-indigo-400/15 to-transparent animate-card-shine" />
 

@@ -243,10 +243,10 @@ export const Customers: React.FC = () => {
         </div>
       )}
 
-      {/* Create Customer Modal */}
+      {/* Create Customer Modal — mobil: pastdan chiqadigan sheet */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900">Yangi mijoz qoʻshish</h3>
 
             {modalError && (

@@ -28,7 +28,7 @@ export const TrendAreaChart: React.FC<TrendAreaChartProps> = ({
   const PAD_L = 8;
   const PAD_R = 8;
   const PAD_T = 20;
-  const PAD_B = 28;
+  const PAD_B = 10; // yorliqlar endi SVG tashqarisida (HTML qatorda)
 
   const { debtPath, paymentPath, debtArea, paymentArea, points } = useMemo(() => {
     if (!data.length) {
@@ -148,21 +148,7 @@ export const TrendAreaChart: React.FC<TrendAreaChartProps> = ({
           </>
         )}
 
-        {/* X o'qi yorliqlari */}
-        {data.map((d, i) => (
-          <text
-            key={i}
-            x={points[i].x}
-            y={H - 8}
-            textAnchor="middle"
-            className="fill-gray-400 dark:fill-slate-500"
-            style={{ fontSize: 11, fontWeight: 600 }}
-          >
-            {d.label}
-          </text>
-        ))}
-
-        {/* Hover zonasi */}
+        {/* Hover zonasi — mobil uchun touch ham qo'llab-quvvatlanadi */}
         {data.map((_, i) => {
           const step = (W - PAD_L - PAD_R) / Math.max(data.length - 1, 1);
           const x = PAD_L + i * step;
@@ -175,16 +161,40 @@ export const TrendAreaChart: React.FC<TrendAreaChartProps> = ({
               height={H}
               fill="transparent"
               onMouseEnter={() => setHover(i)}
+              onClick={() => setHover(i)}
+              onTouchStart={() => setHover(i)}
             />
           );
         })}
       </svg>
 
-      {/* Tooltip */}
+      {/* X o'qi yorliqlari — SVG text o'rniga HTML: telefonda ham o'qilchan bo'ladi */}
+      <div className="flex justify-between px-1 mt-1" aria-hidden>
+        {data.map((d, i) => (
+          <span
+            key={i}
+            className={`text-[10px] sm:text-xs font-semibold ${
+              hover === i ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-slate-500'
+            }`}
+          >
+            {d.label}
+          </span>
+        ))}
+      </div>
+
+      {/* Tooltip — chetlarda kesilmasligi uchun chekka holatlarda siljitiladi */}
       {hovered && (
         <div
           className="pointer-events-none absolute top-2 rounded-xl bg-slate-900/95 text-white text-xs px-3 py-2 shadow-xl backdrop-blur-sm"
-          style={{ left: `${((points[hover!].x || 0) / W) * 100}%`, transform: 'translateX(-50%)' }}
+          style={{
+            left: `${((points[hover!]?.x || 0) / W) * 100}%`,
+            transform:
+              hover === 0
+                ? 'translateX(-15%)'
+                : hover === data.length - 1
+                ? 'translateX(-85%)'
+                : 'translateX(-50%)',
+          }}
         >
           <p className="font-bold mb-1">{hovered.label}</p>
           <p className="flex items-center gap-1.5">

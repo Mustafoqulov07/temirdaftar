@@ -7,6 +7,29 @@
   --font-sans: "Inter", system-ui, sans-serif;
 }
 
+/* ============================================================
+   Mobil qurilmalar uchun umumiy yaxshilanishlar
+   ============================================================ */
+
+/* iPhone notch / safe-area — pastki navigatsiya kontentni yopib olmasligi uchun */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Mobil klaviatura ochilganda fokus maydoni ko'rinadigan bo'lsin */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important; /* iOS < 16px'da avtomatik zoom qiladi */
+  }
+}
+
+/* iOS'da smooth scroll va elastic effektning modalarni buzmasligi uchun */
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Custom Scrollbar for better UX */
 ::-webkit-scrollbar {
   width: 6px;

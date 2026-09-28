@@ -375,7 +375,7 @@ export const Login: React.FC = () => {
             <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Temir Daftar</span>
           </div>
 
-          <div className="animate-auth-rise relative bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-3xl shadow-2xl shadow-indigo-200/50 dark:shadow-black/60 border border-white/60 dark:border-slate-800 p-8 sm:p-10 overflow-hidden">
+          <div className="animate-auth-rise relative bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-3xl shadow-2xl shadow-indigo-200/50 dark:shadow-black/60 border border-white/60 dark:border-slate-800 p-5 sm:p-10 overflow-hidden">
             {/* Yugurib o'tadigan yorug'lik chizig'i */}
             <div className="pointer-events-none absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-transparent via-indigo-400/10 dark:via-indigo-400/15 to-transparent animate-card-shine" />
 
@@ -481,10 +481,10 @@ export const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* Telegram Login Modal — raqam → kod → Kirish tugmasi */}
+      {/* Telegram Login Modal — mobil: pastdan chiqadigan sheet, desktop: markazda */}
       {tgModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 animate-slide-in">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 animate-slide-in max-h-[92vh] overflow-y-auto">
             <div className="text-center space-y-2">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-2xl bg-[#229ED9]/10 dark:bg-[#229ED9]/15 text-[#1d8cc4] dark:text-sky-400">
                 <PaperAirplaneIcon className="w-6 h-6" />
@@ -594,10 +594,10 @@ export const Login: React.FC = () => {
         </div>
       )}
 
-      {/* Forgot Password Modal — PASSWORD_RESET OTP oqimi */}
+      {/* Forgot Password Modal — mobil: pastdan chiqadigan sheet */}
       {forgotModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 animate-slide-in">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 animate-slide-in max-h-[92vh] overflow-y-auto">
             <div className="text-center space-y-2">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
                 <UserGroupIcon className="w-6 h-6" />
@@ -711,10 +711,10 @@ export const Login: React.FC = () => {
         </div>
       )}
 
-      {/* Blocked Account Modal */}
+      {/* Blocked Account Modal — mobil: pastdan chiqadigan sheet */}
       {blockedModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-slide-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-red-100 dark:border-red-900/50 text-center space-y-5">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-slide-in">
+          <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-red-100 dark:border-red-900/50 text-center space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-600 shadow-inner">
               <svg
                 className="w-8 h-8"

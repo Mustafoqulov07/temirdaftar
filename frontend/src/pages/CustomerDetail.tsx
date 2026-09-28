@@ -464,10 +464,10 @@ export const CustomerDetail: React.FC = () => {
 
       {/* -------------------- MODALS -------------------- */}
 
-      {/* Edit Customer Modal */}
+      {/* Edit Customer Modal — mobil: pastdan chiqadigan sheet */}
       {editModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900">Mijoz maʻlumotlarini tahrirlash</h3>
 
             {editModalError && (
@@ -536,10 +536,10 @@ export const CustomerDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Debt Modal */}
+      {/* Debt Modal — mobil: pastdan chiqadigan sheet, scroll bilan */}
       {debtModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900">Yangi qarz yozish</h3>
             <form onSubmit={handleAddDebtSubmit} className="space-y-4">
               <div>
@@ -619,10 +619,10 @@ export const CustomerDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Payment Modal */}
+      {/* Payment Modal — mobil: pastdan chiqadigan sheet */}
       {paymentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900">Toʻlov qabul qilish</h3>
             <form onSubmit={handleAddPaymentSubmit} className="space-y-4">
               <div>
@@ -669,8 +669,8 @@ export const CustomerDetail: React.FC = () => {
 
       {/* Delete Customer Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="text-center space-y-2">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 text-red-600">
                 <TrashIcon className="h-6 w-6" />
@@ -702,8 +702,8 @@ export const CustomerDetail: React.FC = () => {
 
       {/* Reset Debt Confirmation Modal */}
       {resetConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="text-center space-y-2">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-600">
                 <ArrowPathIcon className="h-6 w-6 animate-spin-slow" />
