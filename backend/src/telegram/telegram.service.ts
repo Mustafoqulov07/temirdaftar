@@ -235,8 +235,23 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           if (this.otpService) {
             await this.otpService.deliverPendingOtpForTelegram(telegramId, phoneNumber);
           }
+        } else if (
+          this.otpService &&
+          this.otpService.hasPendingOtpForPhone(phoneNumber, 'REGISTER')
+        ) {
+          // Sayt/ilovada REGISTER OTP kutilmoqda — bu yerda hisob YARATMAYMIZ.
+          // Aks holda foydalanuvchi ilovada kodni kiritgach
+          // "Bu telefon raqam allaqachon ro'yxatdan o'tgan" (409) xatosini oladi,
+          // lekin hisob (tasodifiy parol bilan) bazada qolib ketadi.
+          await this.otpService.deliverPendingOtpForTelegram(telegramId, phoneNumber);
+          await ctx.reply(
+            '📱 Tasdiqlash kodi shu chatga yuborildi.\n\n' +
+              'Iltimos, ro‘yxatdan o‘tishni sayt yoki ilovadagi formada yakunlang — ' +
+              'hisob siz kiritgan parol va do‘kon nomi bilan yaratiladi.',
+          );
+          return;
         } else {
-          // Yangi foydalanuvchi yaratamiz
+          // Yangi foydalanuvchi yaratamiz (faqat sayt/ilovada OTP kutilmayotganda)
           const fullName = [contact.first_name, contact.last_name]
             .filter(Boolean)
             .join(' ') || 'Foydalanuvchi';

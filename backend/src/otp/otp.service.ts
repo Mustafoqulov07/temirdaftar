@@ -40,6 +40,13 @@ const OTP_TTL_MS = 2 * 60 * 1000; // 2 daqiqa
 const RESEND_COOLDOWN_MS = 45 * 1000; // 45 soniya
 const MAX_ATTEMPTS = 5;
 const MAX_ENTRIES_PER_PHONE = 3;
+/**
+ * Muddati tugagan pending OTP 10 daqiqagacha "tirik" hisoblanadi:
+ * foydalanuvchi kodni olmasdan botga kech qolsa (2+ daqiqa), kontakt kelganda
+ * kodni qayta yetkazish uchun. Cleanup entry'ni o'chirsa-da, bu oyna ichida
+ * deliverPendingOtpForTelegram / hasPendingOtpForPhone ishlaydi.
+ */
+const PENDING_LINGER_MS = 10 * 60 * 1000;
 
 function hashOtp(phone: string, purpose: OtpPurpose, code: string): string {
   const secret = (process.env.OTP_SECRET || process.env.JWT_SECRET || 'temirdaftar-otp-secret').trim();
@@ -212,6 +219,23 @@ export class OtpService {
   }
 
   /**
+   * Shu telefon uchun hali yetkazilmagan (pending) OTP bormi?
+   * Muddati tugagan bo'lsa ham PENDING_LINGER_MS ichida bo'lsa "pending" hisoblanadi,
+   * chunki kontakt kelganda kod qayta generatsiya qilib yuboriladi.
+   */
+  hasPendingOtpForPhone(phone: string, purpose?: OtpPurpose): boolean {
+    this.cleanup();
+    const now = Date.now();
+    for (const e of this.entries.values()) {
+      if (e.phone !== phone || e.telegramId !== null) continue;
+      if (now - e.createdAt > PENDING_LINGER_MS) continue;
+      if (purpose && e.purpose !== purpose) continue;
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Bot /start + kontakt yuborganda — pending OTP'ni topib DARHOL yuboradi.
    * Qaror: foydalanuvchi qayta "yuborish" tugmasini bosishi SHART EMAS —
    * start + kontakt bajarilishi bilan eng so'nggi pending kod avtomatik jo'natiladi.
@@ -221,7 +245,7 @@ export class OtpService {
     const now = Date.now();
     let latest: OtpEntry | null = null;
     for (const entry of this.entries.values()) {
-      if (entry.telegramId !== null || entry.expiresAt <= now) continue;
+      if (entry.telegramId !== null || now - entry.createdAt > PENDING_LINGER_MS) continue;
       if (expectedPhone && entry.phone !== expectedPhone) continue;
       if (!latest || entry.createdAt > latest.createdAt) latest = entry;
     }
