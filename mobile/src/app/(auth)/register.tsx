@@ -40,6 +40,9 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState('');
+  // Maydon bilan interaktivlik bo'lgandan keyin (yozish/blur) xatolarni ko'rsatamiz
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const markTouched = (field: string) => setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
   const router = useRouter();
   const { register } = useAuth();
 
@@ -62,6 +65,29 @@ export default function RegisterScreen() {
     setPhoneNumber(formatPhoneInput(text));
   };
 
+  // Jonli (live) validatsiya — xabarlar maydon ostida qizil ko'rinadi
+  const fieldErrors = {
+    fullName: !fullName.trim()
+      ? 'Ismingizni kiriting'
+      : fullName.trim().length < 3
+        ? 'Ism kamida 3 ta belgidan iborat boʻlishi kerak'
+        : '',
+    phoneNumber: phoneNumber.length !== 13
+      ? 'Telefon raqam notoʻgʻri shaklda (+998XXXXXXXXX)'
+      : '',
+    password: !password
+      ? 'Parolni kiriting'
+      : password.length < 6
+        ? 'Parol kamida 6 ta belgidan iborat boʻlishi kerak'
+        : '',
+    storeName: !storeName.trim()
+      ? 'Doʻkon nomini kiriting'
+      : storeName.trim().length < 2
+        ? 'Doʻkon nomi kamida 2 ta belgidan iborat boʻlishi kerak'
+        : '',
+  };
+  const isFieldInvalid = (field: keyof typeof fieldErrors) => !!touched[field] && !!fieldErrors[field];
+
   const requestOtp = useCallback(async () => {
     setError('');
     setLoading(true);
@@ -82,20 +108,10 @@ export default function RegisterScreen() {
 
   const handleSubmitForm = async () => {
     setError('');
-    if (!fullName.trim()) {
-      setError('Ismingizni kiriting');
-      return;
-    }
-    if (phoneNumber.length !== 13) {
-      setError('Telefon raqam notoʻgʻri shaklda (+998XXXXXXXXX)');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Parol kamida 6 ta belgidan iborat boʻlishi kerak');
-      return;
-    }
-    if (!storeName.trim()) {
-      setError('Doʻkon nomini kiriting');
+
+    // Barcha maydonlarni "tekshirilgan" deb belgilaymiz — xatolar maydon ostida ko'rinadi
+    setTouched({ fullName: true, phoneNumber: true, password: true, storeName: true });
+    if (Object.values(fieldErrors).some(Boolean)) {
       return;
     }
 
@@ -169,48 +185,76 @@ export default function RegisterScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Toʻliq ism</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, isFieldInvalid('fullName') && styles.inputInvalid]}
                   value={fullName}
-                  onChangeText={setFullName}
+                  onChangeText={(text) => {
+                    setFullName(text);
+                    markTouched('fullName');
+                  }}
+                  onBlur={() => markTouched('fullName')}
                   placeholder="Ism Familiya"
                   placeholderTextColor="#9CA3AF"
                   autoCapitalize="words"
                 />
+                {isFieldInvalid('fullName') && (
+                  <Text style={styles.fieldError}>{fieldErrors.fullName}</Text>
+                )}
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Telefon raqam</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, isFieldInvalid('phoneNumber') && styles.inputInvalid]}
                   value={phoneNumber}
-                  onChangeText={handlePhoneChange}
+                  onChangeText={(text) => {
+                    handlePhoneChange(text);
+                    markTouched('phoneNumber');
+                  }}
+                  onBlur={() => markTouched('phoneNumber')}
                   keyboardType="phone-pad"
                   placeholder="+998901234567"
                   placeholderTextColor="#9CA3AF"
                 />
+                {isFieldInvalid('phoneNumber') && (
+                  <Text style={styles.fieldError}>{fieldErrors.phoneNumber}</Text>
+                )}
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Parol (kamida 6 ta belgi)</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, isFieldInvalid('password') && styles.inputInvalid]}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    markTouched('password');
+                  }}
+                  onBlur={() => markTouched('password')}
                   secureTextEntry
                   placeholder="••••••"
                   placeholderTextColor="#9CA3AF"
                 />
+                {isFieldInvalid('password') && (
+                  <Text style={styles.fieldError}>{fieldErrors.password}</Text>
+                )}
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Doʻkon nomi</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, isFieldInvalid('storeName') && styles.inputInvalid]}
                   value={storeName}
-                  onChangeText={setStoreName}
+                  onChangeText={(text) => {
+                    setStoreName(text);
+                    markTouched('storeName');
+                  }}
+                  onBlur={() => markTouched('storeName')}
                   placeholder="Masalan: Oltin Bozor"
                   placeholderTextColor="#9CA3AF"
                 />
+                {isFieldInvalid('storeName') && (
+                  <Text style={styles.fieldError}>{fieldErrors.storeName}</Text>
+                )}
               </View>
 
               <TouchableOpacity
@@ -347,6 +391,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     color: '#111827',
+  },
+  inputInvalid: {
+    borderColor: '#EF4444',
+    borderWidth: 1.5,
+  },
+  fieldError: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
   },
   button: {
     backgroundColor: '#4F46E5',

@@ -113,6 +113,9 @@ export const Register: React.FC = () => {
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [botNotStarted, setBotNotStarted] = useState<string | null>(null);
   const [otpRequesting, setOtpRequesting] = useState(false);
+  // Maydon bilan interaktivlik bo'lgandan keyin (yozish/blur) xatolarni ko'rsatamiz
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const markTouched = (field: string) => setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
   const [pendingPayload, setPendingPayload] = useState<{
     fullName: string;
     phoneNumber: string;
@@ -131,6 +134,38 @@ export const Register: React.FC = () => {
       setStoreName(`${telegramRegData.fullName} doʻkoni`);
     }
   }, [telegramRegData]);
+
+  // Jonli (live) validatsiya — xabarlar maydon ostida qizil ko'rinadi
+  const fieldErrors = {
+    fullName: !fullName.trim()
+      ? 'Ismingizni kiriting'
+      : fullName.trim().length < 3
+        ? 'Ism kamida 3 ta belgidan iborat boʻlishi kerak'
+        : '',
+    storeName: !storeName.trim()
+      ? 'Doʻkon nomini kiriting'
+      : storeName.trim().length < 2
+        ? 'Doʻkon nomi kamida 2 ta belgidan iborat boʻlishi kerak'
+        : '',
+    phoneNumber: !/^\+998\d{9}$/.test(phoneNumber)
+      ? 'Telefon raqam +998XXXXXXXXX formatida boʻlishi kerak'
+      : '',
+    password: telegramRegData
+      ? ''
+      : !password
+        ? 'Parolni kiriting'
+        : password.length < 6
+          ? 'Parol kamida 6 ta belgidan iborat boʻlishi kerak'
+          : '',
+    confirmPassword: telegramRegData
+      ? ''
+      : !confirmPassword
+        ? 'Parolni qayta kiriting'
+        : confirmPassword !== password
+          ? 'Parollar mos kelmadi'
+          : '',
+  };
+  const isFieldInvalid = (field: keyof typeof fieldErrors) => !!touched[field] && !!fieldErrors[field];
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -228,18 +263,9 @@ export const Register: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (phoneNumber.length !== 13) {
-      setError('Telefon raqam notoʻgʻri shaklda (+998XXXXXXXXX)');
-      return;
-    }
-
-    if (!telegramRegData && password.length < 6) {
-      setError('Parol uzunligi kamida 6 ta belgidan iborat boʻlishi kerak');
-      return;
-    }
-
-    if (!telegramRegData && password !== confirmPassword) {
-      setError('Parollar mos kelmadi. Iltimos, qayta kiriting.');
+    // Barcha maydonlarni "tekshirilgan" deb belgilaymiz — xatolar maydon ostida ko'rinadi
+    setTouched({ fullName: true, storeName: true, phoneNumber: true, password: true, confirmPassword: true });
+    if (Object.values(fieldErrors).some(Boolean)) {
       return;
     }
 
@@ -354,11 +380,22 @@ export const Register: React.FC = () => {
                     <input
                       type="text"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        markTouched('fullName');
+                      }}
+                      onBlur={() => markTouched('fullName')}
+                      aria-invalid={isFieldInvalid('fullName') || undefined}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 text-base transition-all duration-200 ${
+                        isFieldInvalid('fullName')
+                          ? 'border-red-400 dark:border-red-500 ring-2 ring-red-100 dark:ring-red-950'
+                          : 'border-gray-300 dark:border-slate-700'
+                      }`}
                       placeholder="Ali Valiyev"
                     />
+                    {isFieldInvalid('fullName') && (
+                      <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">{fieldErrors.fullName}</p>
+                    )}
                   </div>
 
                   <div>
@@ -366,11 +403,22 @@ export const Register: React.FC = () => {
                     <input
                       type="text"
                       value={storeName}
-                      onChange={(e) => setStoreName(e.target.value)}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                      onChange={(e) => {
+                        setStoreName(e.target.value);
+                        markTouched('storeName');
+                      }}
+                      onBlur={() => markTouched('storeName')}
+                      aria-invalid={isFieldInvalid('storeName') || undefined}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 text-base transition-all duration-200 ${
+                        isFieldInvalid('storeName')
+                          ? 'border-red-400 dark:border-red-500 ring-2 ring-red-100 dark:ring-red-950'
+                          : 'border-gray-300 dark:border-slate-700'
+                      }`}
                       placeholder="Mahalla Oziq-ovqat Doʻkoni"
                     />
+                    {isFieldInvalid('storeName') && (
+                      <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">{fieldErrors.storeName}</p>
+                    )}
                   </div>
 
                   <div>
@@ -378,11 +426,23 @@ export const Register: React.FC = () => {
                     <input
                       type="text"
                       value={phoneNumber}
-                      onChange={handlePhoneChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                      onChange={(e) => {
+                        handlePhoneChange(e);
+                        markTouched('phoneNumber');
+                      }}
+                      onBlur={() => markTouched('phoneNumber')}
+                      inputMode="tel"
+                      aria-invalid={isFieldInvalid('phoneNumber') || undefined}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 text-base transition-all duration-200 ${
+                        isFieldInvalid('phoneNumber')
+                          ? 'border-red-400 dark:border-red-500 ring-2 ring-red-100 dark:ring-red-950'
+                          : 'border-gray-300 dark:border-slate-700'
+                      }`}
                       placeholder="+998901234567"
                     />
+                    {isFieldInvalid('phoneNumber') && (
+                      <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">{fieldErrors.phoneNumber}</p>
+                    )}
                   </div>
 
                   <div>
@@ -392,11 +452,22 @@ export const Register: React.FC = () => {
                     <input
                       type="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required={!telegramRegData}
-                      className="w-full px-4 py-3 border border-gray-300 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-base transition-all duration-200"
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        markTouched('password');
+                      }}
+                      onBlur={() => markTouched('password')}
+                      aria-invalid={isFieldInvalid('password') || undefined}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 text-base transition-all duration-200 ${
+                        isFieldInvalid('password')
+                          ? 'border-red-400 dark:border-red-500 ring-2 ring-red-100 dark:ring-red-950'
+                          : 'border-gray-300 dark:border-slate-700'
+                      }`}
                       placeholder={telegramRegData ? 'Ixtiyoriy (veb-saytga kirish uchun)' : 'Kamida 6 belgidan iborat parol'}
                     />
+                    {isFieldInvalid('password') && (
+                      <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">{fieldErrors.password}</p>
+                    )}
                   </div>
 
                   {!telegramRegData && (
@@ -407,17 +478,23 @@ export const Register: React.FC = () => {
                       <input
                         type="password"
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          markTouched('confirmPassword');
+                        }}
+                        onBlur={() => markTouched('confirmPassword')}
+                        aria-invalid={isFieldInvalid('confirmPassword') || undefined}
                         className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 text-base transition-all duration-200 ${
-                          confirmPassword && confirmPassword !== password
+                          isFieldInvalid('confirmPassword') || (confirmPassword && confirmPassword !== password)
                             ? 'border-red-400 dark:border-red-500 ring-2 ring-red-100 dark:ring-red-950'
                             : 'border-gray-300 dark:border-slate-700'
                         }`}
                         placeholder="Parolni qayta kiriting"
                       />
-                      {confirmPassword && confirmPassword !== password && (
-                        <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">Parollar mos kelmadi</p>
+                      {(isFieldInvalid('confirmPassword') || (confirmPassword && confirmPassword !== password)) && (
+                        <p className="mt-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
+                          {!confirmPassword ? 'Parolni qayta kiriting' : 'Parollar mos kelmadi'}
+                        </p>
                       )}
                     </div>
                   )}
