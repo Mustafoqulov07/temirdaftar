@@ -423,7 +423,7 @@ export const AdminStores: React.FC = () => {
       {/* Block Confirm Modal */}
       {blockConfirmStore && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+          <div className="bg-white border border-gray-200 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto dark:bg-slate-900 dark:border-slate-800">
             <div className="flex items-center gap-3 mb-3 text-rose-400">
               <ExclamationTriangleIcon className="w-8 h-8" />
               <h3 className="text-base font-bold text-gray-900 dark:text-white">
@@ -440,7 +440,7 @@ export const AdminStores: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setBlockConfirmStore(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+                className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-xs font-semibold transition"
               >
                 Bekor qilish
               </button>
