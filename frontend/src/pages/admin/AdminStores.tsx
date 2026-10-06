@@ -195,11 +195,11 @@ export const AdminStores: React.FC = () => {
       {/* Header & Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
             <BuildingStorefrontIcon className="w-7 h-7 text-indigo-400" />
             Doʻkonlar va Foydalanuvchilar Boshqaruvi
           </h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1">
+          <p className="text-gray-500 dark:text-slate-400 text-xs sm:text-sm mt-1">
             Barcha doʻkonlar roʻyxati, balanslar, bloklash va parollarni boshqarish
           </p>
         </div>
@@ -212,7 +212,7 @@ export const AdminStores: React.FC = () => {
               placeholder="Doʻkon nomi, egasi yoki telefon..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-indigo-500 transition"
+              className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-indigo-500 transition dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-slate-500"
             />
           </div>
           <button
@@ -225,10 +225,10 @@ export const AdminStores: React.FC = () => {
       </div>
 
       {/* Stores Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl dark:bg-slate-900 dark:border-slate-800">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-800/80 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
+          <table className="w-full text-left text-sm text-gray-700 dark:text-slate-300">
+            <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-500 border-b border-gray-200 dark:bg-slate-800/80 dark:text-slate-400 dark:border-slate-800">
               <tr>
                 <th className="px-4 py-3.5">Doʻkon / Manzil</th>
                 <th className="px-4 py-3.5">Egasi va Telefon</th>
@@ -239,75 +239,75 @@ export const AdminStores: React.FC = () => {
                 <th className="px-4 py-3.5 text-right">Amallar</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-gray-200 dark:divide-slate-800/60">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-slate-400">
                     <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                     Yuklanmoqda...
                   </td>
                 </tr>
               ) : stores.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
+                  <td colSpan={7} className="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
                     Hech qanday doʻkon topilmadi
                   </td>
                 </tr>
               ) : (
                 stores.map((s) => (
-                  <tr key={s.id} className="hover:bg-slate-800/40 transition">
+                  <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition">
                     <td className="px-4 py-4">
-                      <div className="font-semibold text-white">{s.name}</div>
-                      <div className="text-xs text-slate-400">{s.address || 'Manzil koʻrsatilmagan'}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">Ochilgan: {formatDate(s.createdAt)}</div>
+                      <div className="font-semibold text-gray-900 dark:text-white">{s.name}</div>
+                      <div className="text-xs text-gray-500 dark:text-slate-400">{s.address || 'Manzil koʻrsatilmagan'}</div>
+                      <div className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">Ochilgan: {formatDate(s.createdAt)}</div>
                     </td>
 
                     <td className="px-4 py-4">
-                      <div className="text-white font-medium flex items-center gap-1.5">
+                      <div className="text-gray-900 dark:text-white font-medium flex items-center gap-1.5">
                         {s.user.fullName}
                         {s.user.role === 'SUPER_ADMIN' && (
-                          <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-bold border border-amber-500/30">
+                          <span className="text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-bold border border-amber-500/30">
                             Super Admin
                           </span>
                         )}
                       </div>
-                      <div className="text-xs font-mono text-slate-400 mt-0.5">{s.user.phoneNumber}</div>
+                      <div className="text-xs font-mono text-gray-500 dark:text-slate-400 mt-0.5">{s.user.phoneNumber}</div>
                       {s.user.telegramId ? (
-                        <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded mt-1 inline-block">
+                        <span className="text-[10px] text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded mt-1 inline-block">
                           Telegram ulangan
                         </span>
                       ) : (
-                        <span className="text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded mt-1 inline-block">
+                        <span className="text-[10px] text-gray-500 bg-gray-100 dark:text-slate-500 dark:bg-slate-800 px-1.5 py-0.5 rounded mt-1 inline-block">
                           Telegram yoʻq
                         </span>
                       )}
                     </td>
 
                     <td className="px-4 py-4">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-semibold text-slate-200">
+                      <span className="px-2.5 py-1 rounded-lg bg-gray-100 text-xs font-semibold text-gray-700 dark:bg-slate-800 dark:text-slate-200">
                         {s.customerCount} ta mijoz
                       </span>
                     </td>
 
-                    <td className="px-4 py-4 text-xs font-medium text-slate-300">
+                    <td className="px-4 py-4 text-xs font-medium text-gray-700 dark:text-slate-300">
                       <div>{formatMoney(s.totalDebtSum)}</div>
-                      <div className="text-[11px] text-emerald-400">Toʻlangan: {formatMoney(s.totalPaymentSum)}</div>
+                      <div className="text-[11px] text-emerald-600 dark:text-emerald-400">Toʻlangan: {formatMoney(s.totalPaymentSum)}</div>
                     </td>
 
                     <td className="px-4 py-4 font-bold text-xs">
-                      <span className={s.balance > 0 ? 'text-amber-400' : 'text-slate-400'}>
+                      <span className={s.balance > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-slate-400'}>
                         {formatMoney(s.balance)}
                       </span>
                     </td>
 
                     <td className="px-4 py-4">
                       {s.user.isBlocked ? (
-                        <span className="px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-400 text-xs font-semibold border border-rose-500/30 inline-flex items-center gap-1">
+                        <span className="px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 text-xs font-semibold border border-rose-500/30 inline-flex items-center gap-1">
                           <LockClosedIcon className="w-3.5 h-3.5" />
                           Bloklangan
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-semibold border border-emerald-500/30 inline-flex items-center gap-1">
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-semibold border border-emerald-500/30 inline-flex items-center gap-1">
                           <CheckCircleIcon className="w-3.5 h-3.5" />
                           Faol
                         </span>
@@ -318,7 +318,7 @@ export const AdminStores: React.FC = () => {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenDetail(s.id)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-400 transition"
+                          className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-indigo-500 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-indigo-400 transition"
                           title="Batafsil koʻrish"
                         >
                           <EyeIcon className="w-4 h-4" />
@@ -329,7 +329,7 @@ export const AdminStores: React.FC = () => {
                             setPasswordModalStore(s);
                             setNewPassword('');
                           }}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 transition"
+                          className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-amber-500 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-amber-400 transition"
                           title="Parolni tiklash"
                         >
                           <KeyIcon className="w-4 h-4" />
@@ -340,8 +340,8 @@ export const AdminStores: React.FC = () => {
                             onClick={() => setBlockConfirmStore(s)}
                             className={`p-1.5 rounded-lg transition ${
                               s.user.isBlocked
-                                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400'
-                                : 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400'
+                                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                                : 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 dark:text-rose-400'
                             }`}
                             title={s.user.isBlocked ? 'Blokdan chiqarish' : 'Bloklash'}
                           >
@@ -365,27 +365,27 @@ export const AdminStores: React.FC = () => {
       {/* Password Reset Modal */}
       {passwordModalStore && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <div className="bg-white border border-gray-200 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto dark:bg-slate-900 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-slate-800 mb-4">
+              <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <KeyIcon className="w-5 h-5 text-amber-400" />
                 Parolni Yangilash
               </h3>
               <button
                 onClick={() => setPasswordModalStore(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-gray-400 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white p-1 rounded-lg"
               >
                 <XMarkIcon className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-300 mb-4">
-              Doʻkon: <strong className="text-white">{passwordModalStore.name}</strong> ({passwordModalStore.user.fullName})
+            <p className="text-xs text-gray-600 dark:text-slate-300 mb-4">
+              Doʻkon: <strong className="text-gray-900 dark:text-white">{passwordModalStore.name}</strong> ({passwordModalStore.user.fullName})
             </p>
 
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1.5">
                   Yangi Parol (kamida 6 ta belgi):
                 </label>
                 <input
@@ -395,7 +395,7 @@ export const AdminStores: React.FC = () => {
                   placeholder="Masalan: YangiParol123"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 dark:bg-slate-950 dark:border-slate-700 dark:text-white"
                 />
               </div>
 
@@ -403,7 +403,7 @@ export const AdminStores: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setPasswordModalStore(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+                  className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-xs font-semibold transition"
                 >
                   Bekor qilish
                 </button>
@@ -426,13 +426,13 @@ export const AdminStores: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-3 text-rose-400">
               <ExclamationTriangleIcon className="w-8 h-8" />
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">
                 {blockConfirmStore.user.isBlocked ? 'Blokdan chiqarish' : 'Doʻkonni Bloklash'}
               </h3>
             </div>
 
-            <p className="text-xs text-slate-300 mb-5 leading-relaxed">
-              Haqiqatan ham <strong className="text-white">"{blockConfirmStore.name}"</strong> doʻkonini{' '}
+            <p className="text-xs text-gray-600 dark:text-slate-300 mb-5 leading-relaxed">
+              Haqiqatan ham <strong className="text-gray-900 dark:text-white">"{blockConfirmStore.name}"</strong> doʻkonini{' '}
               {blockConfirmStore.user.isBlocked ? 'blokdan chiqarmoqchimisiz?' : 'bloklamoqchimisiz? Bloklangan foydalanuvchi tizimga kira olmaydi.'}
             </p>
 
@@ -464,31 +464,31 @@ export const AdminStores: React.FC = () => {
       {/* Store Detail Modal */}
       {(selectedStoreDetail || detailLoading) && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl max-w-4xl w-full p-5 sm:p-6 my-auto shadow-2xl relative max-h-[92vh] flex flex-col">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div className="bg-white border border-gray-200 rounded-t-2xl sm:rounded-2xl max-w-4xl w-full p-5 sm:p-6 my-auto shadow-2xl relative max-h-[92vh] flex flex-col dark:bg-slate-900 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-xl">
                   <BuildingStorefrontIcon className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                     {selectedStoreDetail?.store.name || 'Yuklanmoqda...'}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     Egasi: {selectedStoreDetail?.store.user.fullName} ({selectedStoreDetail?.store.user.phoneNumber})
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedStoreDetail(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+                className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 rounded-lg transition"
               >
                 <XMarkIcon className="w-6 h-6" />
               </button>
             </div>
 
             {detailLoading ? (
-              <div className="py-16 text-center text-slate-400">
+              <div className="py-16 text-center text-gray-500 dark:text-slate-400">
                 <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                 Maʼlumotlar yuklanmoqda...
               </div>
@@ -496,12 +496,12 @@ export const AdminStores: React.FC = () => {
               <div className="overflow-y-auto flex-1 mt-4 space-y-6 pr-1">
                 {/* Customers list */}
                 <div>
-                  <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wider mb-2">
+                  <h4 className="text-sm font-bold text-gray-700 dark:text-slate-200 uppercase tracking-wider mb-2">
                     Mijozlar Roʻyxati ({selectedStoreDetail?.customers.length || 0} nafar)
                   </h4>
-                  <div className="bg-slate-950 border border-slate-800 rounded-xl overflow-x-auto max-h-60">
-                    <table className="w-full text-left text-xs text-slate-300">
-                      <thead className="bg-slate-800/80 sticky top-0 text-slate-400">
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl overflow-x-auto max-h-60 dark:bg-slate-950 dark:border-slate-800">
+                    <table className="w-full text-left text-xs text-gray-700 dark:text-slate-300">
+                      <thead className="bg-gray-100 sticky top-0 text-gray-500 dark:bg-slate-800/80 dark:text-slate-400">
                         <tr>
                           <th className="px-3 py-2">№</th>
                           <th className="px-3 py-2">F.I.SH</th>
@@ -511,17 +511,17 @@ export const AdminStores: React.FC = () => {
                           <th className="px-3 py-2">Qoldiq</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800">
+                      <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
                         {selectedStoreDetail?.customers.map((c) => (
-                          <tr key={c.id} className="hover:bg-slate-900/50">
-                            <td className="px-3 py-2 font-mono text-slate-500">
+                          <tr key={c.id} className="hover:bg-gray-100 dark:hover:bg-slate-900/50">
+                            <td className="px-3 py-2 font-mono text-gray-400 dark:text-slate-500">
                               {c.serialId ? `#${c.serialId}` : '-'}
                             </td>
-                            <td className="px-3 py-2 font-medium text-white">{c.fullName}</td>
-                            <td className="px-3 py-2 font-mono text-slate-400">{c.phoneNumber || '-'}</td>
-                            <td className="px-3 py-2 text-rose-400">{formatMoney(c.totalDebt)}</td>
-                            <td className="px-3 py-2 text-emerald-400">{formatMoney(c.totalPaid)}</td>
-                            <td className="px-3 py-2 font-bold text-amber-400">{formatMoney(c.balance)}</td>
+                            <td className="px-3 py-2 font-medium text-gray-900 dark:text-white">{c.fullName}</td>
+                            <td className="px-3 py-2 font-mono text-gray-500 dark:text-slate-400">{c.phoneNumber || '-'}</td>
+                            <td className="px-3 py-2 text-rose-600 dark:text-rose-400">{formatMoney(c.totalDebt)}</td>
+                            <td className="px-3 py-2 text-emerald-600 dark:text-emerald-400">{formatMoney(c.totalPaid)}</td>
+                            <td className="px-3 py-2 font-bold text-amber-600 dark:text-amber-400">{formatMoney(c.balance)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -531,44 +531,44 @@ export const AdminStores: React.FC = () => {
 
                 {/* Recent Debts and Payments side-by-side */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-3">
-                    <h5 className="text-xs font-bold text-slate-300 mb-2">Soʻnggi Qarzlar</h5>
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 dark:bg-slate-950 dark:border-slate-800">
+                    <h5 className="text-xs font-bold text-gray-600 dark:text-slate-300 mb-2">Soʻnggi Qarzlar</h5>
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                       {selectedStoreDetail?.recentDebts.map((d) => (
-                        <div key={d.id} className="p-2 rounded-lg bg-slate-900/80 border border-slate-800 text-xs flex justify-between">
+                        <div key={d.id} className="p-2 rounded-lg bg-white border border-gray-200 text-xs flex justify-between dark:bg-slate-900/80 dark:border-slate-800">
                           <div>
-                            <p className="font-semibold text-white">{d.customer.fullName}</p>
-                            <p className="text-[11px] text-slate-400">{d.comment || 'Izohsiz'}</p>
+                            <p className="font-semibold text-gray-900 dark:text-white">{d.customer.fullName}</p>
+                            <p className="text-[11px] text-gray-500 dark:text-slate-400">{d.comment || 'Izohsiz'}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-rose-400">{formatMoney(d.total)}</p>
-                            <p className="text-[10px] text-slate-500">{formatDate(d.createdAt)}</p>
+                            <p className="font-bold text-rose-600 dark:text-rose-400">{formatMoney(d.total)}</p>
+                            <p className="text-[10px] text-gray-400 dark:text-slate-500">{formatDate(d.createdAt)}</p>
                           </div>
                         </div>
                       ))}
                       {(!selectedStoreDetail?.recentDebts || selectedStoreDetail.recentDebts.length === 0) && (
-                        <p className="text-xs text-slate-500 text-center py-4">Qarzlar mavjud emas</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">Qarzlar mavjud emas</p>
                       )}
                     </div>
                   </div>
 
-                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-3">
-                    <h5 className="text-xs font-bold text-slate-300 mb-2">Soʻnggi Toʻlovlar</h5>
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 dark:bg-slate-950 dark:border-slate-800">
+                    <h5 className="text-xs font-bold text-gray-600 dark:text-slate-300 mb-2">Soʻnggi Toʻlovlar</h5>
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                       {selectedStoreDetail?.recentPayments.map((p) => (
-                        <div key={p.id} className="p-2 rounded-lg bg-slate-900/80 border border-slate-800 text-xs flex justify-between">
+                        <div key={p.id} className="p-2 rounded-lg bg-white border border-gray-200 text-xs flex justify-between dark:bg-slate-900/80 dark:border-slate-800">
                           <div>
-                            <p className="font-semibold text-white">{p.customer.fullName}</p>
-                            <p className="text-[11px] text-slate-400">{p.comment || "To'lov"}</p>
+                            <p className="font-semibold text-gray-900 dark:text-white">{p.customer.fullName}</p>
+                            <p className="text-[11px] text-gray-500 dark:text-slate-400">{p.comment || "To'lov"}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-emerald-400">{formatMoney(p.amount)}</p>
-                            <p className="text-[10px] text-slate-500">{formatDate(p.paymentDate)}</p>
+                            <p className="font-bold text-emerald-600 dark:text-emerald-400">{formatMoney(p.amount)}</p>
+                            <p className="text-[10px] text-gray-400 dark:text-slate-500">{formatDate(p.paymentDate)}</p>
                           </div>
                         </div>
                       ))}
                       {(!selectedStoreDetail?.recentPayments || selectedStoreDetail.recentPayments.length === 0) && (
-                        <p className="text-xs text-slate-500 text-center py-4">Toʻlovlar mavjud emas</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">Toʻlovlar mavjud emas</p>
                       )}
                     </div>
                   </div>

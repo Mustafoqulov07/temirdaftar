@@ -70,39 +70,39 @@ export const AdminBroadcast: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
           <MegaphoneIcon className="w-7 h-7 text-indigo-400" />
           Telegram Xabarnoma Yuborish
         </h1>
-        <p className="text-slate-400 text-xs sm:text-sm mt-1">
+        <p className="text-gray-500 dark:text-slate-400 text-xs sm:text-sm mt-1">
           Barcha doʻkon egalariga Telegram bot orqali rasmiy xabar va yangiliklarni tarqatish
         </p>
       </div>
 
       {/* Telegram status banner */}
-      <div className="bg-gradient-to-r from-sky-950/40 via-indigo-950/40 to-slate-900 border border-sky-500/20 rounded-2xl p-4 sm:p-5 flex items-start sm:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-sky-50 via-indigo-50 to-slate-50 border border-sky-200 rounded-2xl p-4 sm:p-5 flex items-start sm:items-center justify-between gap-4 dark:from-sky-950/40 dark:via-indigo-950/40 dark:to-slate-900 dark:border-sky-500/20">
         <div className="flex items-center gap-3.5">
-          <div className="p-2.5 bg-sky-500/20 text-sky-400 rounded-xl">
+          <div className="p-2.5 bg-sky-500/20 text-sky-600 dark:text-sky-400 rounded-xl">
             <InformationCircleIcon className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-bold text-white">Botga ulangan faol foydalanuvchilar</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-sm font-bold text-gray-900 dark:text-white">Botga ulangan faol foydalanuvchilar</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400">
               Ushbu xabarnoma bot orqali roʻyxatdan oʻtgan yoki hisobini bogʻlagan foydalanuvchilarga boradi.
             </p>
           </div>
         </div>
         <div className="text-right">
-          <span className="text-2xl font-black text-sky-400">
+          <span className="text-2xl font-black text-sky-600 dark:text-sky-400">
             {telegramUsersCount !== null ? telegramUsersCount : '...'}
           </span>
-          <span className="text-xs text-slate-400 block">nafar qabul qiluvchi</span>
+          <span className="text-xs text-gray-500 dark:text-slate-400 block">nafar qabul qiluvchi</span>
         </div>
       </div>
 
       {/* Template chips */}
       <div>
-        <label className="text-xs font-semibold text-slate-300 block mb-2 flex items-center gap-1">
+        <label className="text-xs font-semibold text-gray-600 dark:text-slate-300 block mb-2 flex items-center gap-1">
           <SparklesIcon className="w-4 h-4 text-amber-400" />
           Tayyor shablonlar (ustiga bosing):
         </label>
@@ -112,7 +112,7 @@ export const AdminBroadcast: React.FC = () => {
               key={idx}
               type="button"
               onClick={() => setMessage(tmpl.text)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-indigo-500/50 text-slate-300 hover:text-white transition"
+              className="text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:border-indigo-500/50 text-gray-600 hover:text-gray-900 transition dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
             >
               {tmpl.title}
             </button>
@@ -123,10 +123,10 @@ export const AdminBroadcast: React.FC = () => {
       {/* Editor & Preview Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Editor Form */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xl dark:bg-slate-900 dark:border-slate-800">
           <form onSubmit={handleSend} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-2">
                 Xabar Matni:
               </label>
               <textarea
@@ -135,12 +135,12 @@ export const AdminBroadcast: React.FC = () => {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Xabaringizni bu yerga yozing..."
-                className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 transition leading-relaxed resize-none"
+                className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 transition leading-relaxed resize-none dark:bg-slate-950 dark:border-slate-700 dark:text-white dark:placeholder-slate-500"
               />
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-gray-400 dark:text-slate-500">
                 Belgilar soni: {message.length}
               </span>
               <button
@@ -156,9 +156,9 @@ export const AdminBroadcast: React.FC = () => {
         </div>
 
         {/* Live Telegram Preview */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col justify-between dark:bg-slate-900 dark:border-slate-800">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400 block mb-3">
               📱 Telegram koʻrinishi (Preview)
             </span>
             <div className="bg-[#182533] p-4 rounded-2xl max-w-sm shadow-inner border border-slate-700/40">
@@ -177,14 +177,14 @@ export const AdminBroadcast: React.FC = () => {
           </div>
 
           {result && (
-            <div className="mt-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300">
+            <div className="mt-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-700 dark:text-emerald-300">
               <div className="flex items-center gap-2 font-bold mb-1">
                 <CheckBadgeIcon className="w-4 h-4 text-emerald-400" />
                 Muvaffaqiyatli yakunlandi:
               </div>
               <div>Jami qabul qiluvchilar: {result.total} ta</div>
               <div>Yuborildi: {result.sent} ta</div>
-              {result.failed > 0 && <div className="text-rose-400">Yuborilmadi: {result.failed} ta</div>}
+              {result.failed > 0 && <div className="text-rose-600 dark:text-rose-400">Yuborilmadi: {result.failed} ta</div>}
             </div>
           )}
         </div>
